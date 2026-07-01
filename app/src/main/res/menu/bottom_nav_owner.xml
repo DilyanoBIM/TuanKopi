@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="Dashboard" />
+    <item
+        android:id="@+id/navigation_data"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="Master Data" />
+    <item
+        android:id="@+id/navigation_logistik"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:title="Logistik" />
+    <item
+        android:id="@+id/navigation_audit"
+        android:icon="@android:drawable/ic_menu_report_image"
+        android:title="Audit Profit" />
+</menu>

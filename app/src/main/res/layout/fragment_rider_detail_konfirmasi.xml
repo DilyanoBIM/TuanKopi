@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FB"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvDetailHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Periksa Kuantitas Cup"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#191C1E"/>
+
+    <TextView
+        android:id="@+id/tvTanggalTerpilih"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvDetailHeader"
+        android:text="Tanggal: --"
+        android:textSize="13sp"
+        android:textColor="#757682"
+        android:layout_marginTop="2dp"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvTanggalTerpilih"
+        android:layout_above="@+id/layoutActionBottom"
+        android:layout_marginTop="12dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/containerDetailItemStok"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/layoutActionBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true">
+
+        <!-- Teks Informasi Kunci Stok Baru -->
+        <TextView
+            android:id="@+id/tvStatusKunciStok"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stok pada tanggal ini sudah anda terima"
+            android:textSize="14sp"
+            android:textStyle="bold|italic"
+            android:textColor="#2E7D32"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btnTerimaStokFinal"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="TERIMA STOK SEKARANG"
+            android:backgroundTint="#2E7D32"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btnKomplainOwnerFinal"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="HUBUNGI OWNER (ADA SELISIH)"
+            android:backgroundTint="#C62828"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+    </LinearLayout>
+</RelativeLayout>

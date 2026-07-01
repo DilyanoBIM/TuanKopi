@@ -1,0 +1,291 @@
+package com.example.tuankopi
+
+import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.cardview.widget.CardView
+import androidx.fragment.app.Fragment
+import com.example.tuankopi.databinding.FragmentRiderDetailKonfirmasiBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
+import java.text.NumberFormat
+import java.util.Locale
+
+class RiderDetailKonfirmasiFragment : Fragment() {
+
+    private var _binding: FragmentRiderDetailKonfirmasiBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mFirestore: FirebaseFirestore
+    private var detailListener: ListenerRegistration? = null
+
+    private var tanggalTarget = ""
+    private var docIdStokTarget = ""
+    private var isLocked = false
+    private val petaVerifikasiItem = HashMap<String, Int>() // id_produk / KEY_MODAL -> 0: belum pilih, 1: sesuai, 2: selisih
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRiderDetailKonfirmasiBinding.inflate(inflater, container, false)
+        mAuth = FirebaseAuth.getInstance()
+        mFirestore = FirebaseFirestore.getInstance()
+
+        tanggalTarget = arguments?.getString("KEY_TANGGAL") ?: ""
+        binding.tvTanggalTerpilih.text = "Tanggal: $tanggalTarget"
+
+        val uidRider = mAuth.currentUser?.uid ?: ""
+        val cleanTgl = tanggalTarget.replace("-", "")
+        docIdStokTarget = "${cleanTgl}_$uidRider"
+
+        dengarkanLiveDetailStok()
+
+        binding.btnTerimaStokFinal.setOnClickListener {
+            eksekusiKonfirmasiTerimaStokKolektif()
+        }
+
+        binding.btnKomplainOwnerFinal.setOnClickListener {
+            Toast.makeText(context, "Laporan selisih dikirim. Menunggu Owner melakukan perubahan data!", Toast.LENGTH_LONG).show()
+        }
+
+        return binding.root
+    }
+
+    private fun dengarkanLiveDetailStok() {
+        detailListener = mFirestore.collection("stok_harian").document(docIdStokTarget)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || !isAdded) return@addSnapshotListener
+                if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
+
+                // Mengunci mutlak jika status_stok sudah AKTIF atau OPEN
+                val statusStokUtama = snapshot.getString("status_stok") ?: "CLOSED"
+                isLocked = (statusStokUtama == "AKTIF" || statusStokUtama == "OPEN")
+
+                binding.containerDetailItemStok.removeAllViews()
+
+                // 1. TAMPILKAN BARIS VERIFIKASI MODAL KEMBALIAN DI POSISI PALING ATAS
+                val modalKembalian = snapshot.getLong("modal_kembalian") ?: 0L
+                val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+                val textModalRupiah = formatter.format(modalKembalian).replace(",00", "")
+
+                if (!petaVerifikasiItem.containsKey("KEY_MODAL")) {
+                    petaVerifikasiItem["KEY_MODAL"] = if (isLocked) 1 else 0
+                }
+                tampilkanBarisVerifikasiGenerik("KEY_MODAL", "💰 Modal Cash Awal Keliling", textModalRupiah)
+
+                // 2. LOOPER UNTUK DAFTAR PRODUK KOPI
+                val detailStokMap = snapshot.get("detail_stok") as? Map<*, *> ?: return@addSnapshotListener
+                var totalItemHitung = 1 // Diinisialisasi dari angka 1 karena ada Modal Cash di atas
+
+                for ((key, value) in detailStokMap) {
+                    val idProduk = key.toString()
+                    val dataItem = value as? Map<*, *> ?: continue
+                    val namaProduk = dataItem["nama_produk"] as? String ?: "Menu Kopi"
+                    val jatahStokTotal = dataItem["stok_total"] as? Long ?: (dataItem["stok_awal"] as? Long ?: 0L)
+                    val statusDiterimaItem = dataItem["diterima"] as? Boolean ?: false
+
+                    totalItemHitung++
+
+                    if (!petaVerifikasiItem.containsKey(idProduk)) {
+                        petaVerifikasiItem[idProduk] = if (statusDiterimaItem) 1 else 0
+                    }
+
+                    tampilkanBarisVerifikasiGenerik(idProduk, namaProduk, "$jatahStokTotal Cup")
+                }
+
+                evaluasiStateTombolKeputusan(totalItemHitung)
+            }
+    }
+
+    private fun tampilkanBarisVerifikasiGenerik(idKey: String, namaLabel: String, valueLabel: String) {
+        val ctx = context ?: return
+
+        val cardItem = CardView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, 0, 0, dpToPx(ctx, 12))
+            }
+            radius = dpToPx(ctx, 8).toFloat()
+            cardElevation = dpToPx(ctx, 2).toFloat()
+            setCardBackgroundColor(Color.WHITE)
+        }
+
+        val susunanKonten = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            val p = dpToPx(ctx, 16)
+            setPadding(p, p, p, p)
+        }
+
+        val tvInfo = TextView(ctx).apply {
+            text = "$namaLabel — $valueLabel"
+            textSize = 14f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.parseColor("#191C1E"))
+        }
+        susunanKonten.addView(tvInfo)
+
+        val groupTombol = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                topMargin = dpToPx(ctx, 10)
+            }
+        }
+
+        val btnSesuai = Button(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(0, dpToPx(ctx, 40), 1f).apply { rightMargin = dpToPx(ctx, 4) }
+            text = "SESUAI"
+            textSize = 11f
+            setTypeface(null, Typeface.BOLD)
+            isEnabled = !isLocked
+
+            if (petaVerifikasiItem[idKey] == 1) {
+                setBackgroundColor(Color.parseColor("#2E7D32"))
+                setTextColor(Color.WHITE)
+            } else {
+                setBackgroundColor(Color.parseColor("#E0E0E0"))
+                setTextColor(Color.BLACK)
+            }
+        }
+
+        val btnTidakSesuai = Button(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(0, dpToPx(ctx, 40), 1f).apply { leftMargin = dpToPx(ctx, 4) }
+            text = "ADA SELISIH"
+            textSize = 11f
+            setTypeface(null, Typeface.BOLD)
+            isEnabled = !isLocked
+
+            if (petaVerifikasiItem[idKey] == 2) {
+                setBackgroundColor(Color.parseColor("#C62828"))
+                setTextColor(Color.WHITE)
+            } else {
+                setBackgroundColor(Color.parseColor("#E0E0E0"))
+                setTextColor(Color.BLACK)
+            }
+        }
+
+        btnSesuai.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            petaVerifikasiItem[idKey] = 1
+
+            btnSesuai.setBackgroundColor(Color.parseColor("#2E7D32"))
+            btnSesuai.setTextColor(Color.WHITE)
+            btnTidakSesuai.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            btnTidakSesuai.setTextColor(Color.BLACK)
+
+            evaluasiStateTombolKeputusan(petaVerifikasiItem.size)
+        }
+
+        btnTidakSesuai.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            petaVerifikasiItem[idKey] = 2
+
+            btnTidakSesuai.setBackgroundColor(Color.parseColor("#C62828"))
+            btnTidakSesuai.setTextColor(Color.WHITE)
+            btnSesuai.setBackgroundColor(Color.parseColor("#E0E0E0"))
+            btnSesuai.setTextColor(Color.BLACK)
+
+            evaluasiStateTombolKeputusan(petaVerifikasiItem.size)
+        }
+
+        groupTombol.addView(btnSesuai)
+        groupTombol.addView(btnTidakSesuai)
+        susunanKonten.addView(groupTombol)
+        cardItem.addView(susunanKonten)
+        binding.containerDetailItemStok.addView(cardItem)
+    }
+
+    private fun evaluasiStateTombolKeputusan(totalItem: Int) {
+        if (isLocked) {
+            binding.tvStatusKunciStok.text = "Stok aktif! Selamat berjualan."
+            binding.tvStatusKunciStok.visibility = View.VISIBLE
+            binding.btnTerimaStokFinal.visibility = View.GONE
+            binding.btnKomplainOwnerFinal.visibility = View.GONE
+            return
+        }
+
+        if (petaVerifikasiItem.isEmpty()) return
+        var jumlahSudahPilih = 0
+        var adaSalah = false
+
+        for ((_, status) in petaVerifikasiItem) {
+            if (status == 1 || status == 2) jumlahSudahPilih++
+            if (status == 2) adaSalah = true
+        }
+
+        binding.tvStatusKunciStok.visibility = View.GONE
+
+        // Validasi kelayakan: Munculkan tombol jika modal awal + kopi murni semuanya sudah dicek
+        if (jumlahSudahPilih == totalItem) {
+            if (adaSalah) {
+                binding.btnTerimaStokFinal.visibility = View.GONE
+                binding.btnKomplainOwnerFinal.visibility = View.VISIBLE
+            } else {
+                binding.btnTerimaStokFinal.visibility = View.VISIBLE // ◄ SUDAH STERIL DI SINI, BIM!
+                binding.btnKomplainOwnerFinal.visibility = View.GONE
+            }
+        } else {
+            binding.btnTerimaStokFinal.visibility = View.GONE
+            binding.btnKomplainOwnerFinal.visibility = View.GONE
+        }
+    }
+
+    private fun eksekusiKonfirmasiTerimaStokKolektif() {
+        val refRider = mFirestore.collection("stok_harian").document(docIdStokTarget)
+
+        mFirestore.runTransaction { transaction ->
+            val snapshotRider = transaction.get(refRider)
+            if (!snapshotRider.exists()) {
+                throw FirebaseFirestoreException("Dokumen jatah harian tidak ditemukan!", FirebaseFirestoreException.Code.NOT_FOUND)
+            }
+
+            val rawDetailStok = snapshotRider.get("detail_stok") as? Map<*, *> ?: HashMap<String, Any>()
+            val detailStokTerbarui = HashMap<String, Any>()
+
+            for ((k, v) in rawDetailStok) {
+                val idProd = k.toString()
+                val subMapDataKopi = v as? Map<*, *> ?: continue
+                val subMapTerbarui = HashMap<String, Any>()
+
+                for ((subKey, subVal) in subMapDataKopi) {
+                    subMapTerbarui[subKey.toString()] = subVal!!
+                }
+
+                // Injeksi flag diterima = true hanya jika item kopi murni dikonfirmasi SESUAI
+                if (petaVerifikasiItem[idProd] == 1) {
+                    subMapTerbarui["diterima"] = true
+                }
+
+                detailStokTerbarui[idProd] = subMapTerbarui
+            }
+
+            transaction.update(refRider, "detail_stok", detailStokTerbarui)
+            transaction.update(refRider, "status_stok", "AKTIF")
+
+            null
+        }.addOnSuccessListener {
+            Toast.makeText(context, "Seluruh jatah muatan & modal keliling berhasil Anda konfirmasi!", Toast.LENGTH_SHORT).show()
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderDashboardFragment())
+        }.addOnFailureListener { e ->
+            Toast.makeText(context, "Gagal mengonfirmasi: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun dpToPx(c: Context, dp: Int): Int = (dp * c.resources.displayMetrics.density).toInt()
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        detailListener?.remove()
+        _binding = null
+    }
+}

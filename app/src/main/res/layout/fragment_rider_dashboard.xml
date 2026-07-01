@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FB"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header Profil -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:paddingHorizontal="4dp">
+            <TextView
+                android:id="@+id/tvRiderWelcome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Halo Rider,"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"/>
+            <TextView
+                android:id="@+id/tvRiderUid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UID: Loading..."
+                android:textSize="11sp"
+                android:textColor="#757682"/>
+        </LinearLayout>
+
+        <!-- Card Status Jualan -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status Jualan Hari Ini:"
+                    android:textSize="13sp"
+                    android:textColor="#444651"/>
+                <TextView
+                    android:id="@+id/tvStatusHariIni"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="MEMUAT..."
+                    android:textStyle="bold"
+                    android:textSize="13sp"
+                    android:textColor="#00236F"/>
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Card Ringkasan Kumulatif Cup -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:weightSum="3">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Stok" android:textSize="11sp" android:textColor="#757682"/>
+                    <TextView android:id="@+id/tvTotalStokBawaan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="#191C1E"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terjual" android:textSize="11sp" android:textColor="#757682"/>
+                    <TextView android:id="@+id/tvTotalStokTerjual" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="#2E7D32"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sisa" android:textSize="11sp" android:textColor="#757682"/>
+                    <TextView android:id="@+id/tvTotalStokSisa" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="#C62828"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- KASIR POS MOBILE: Pemisahan Terstruktur 5 Panel Finansial Rider -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 1. Modal Kas Awal -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Modal Kas Awal (Statis):"
+                        android:textSize="13sp"
+                        android:textColor="#757682"/>
+                    <TextView
+                        android:id="@+id/tvModalKembalianDashboard"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Rp 0"
+                        android:textSize="13sp"
+                        android:textColor="#191C1E"/>
+                </RelativeLayout>
+
+                <!-- 2. Pembayaran Tunai -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pembayaran Tunai (Cash):"
+                        android:textSize="13sp"
+                        android:textColor="#757682"/>
+                    <TextView
+                        android:id="@+id/tvPembayaranTunaiLive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Rp 0"
+                        android:textSize="13sp"
+                        android:textColor="#191C1E"/>
+                </RelativeLayout>
+
+                <!-- 3. Pembayaran QRIS -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pembayaran QRIS (Digital):"
+                        android:textSize="13sp"
+                        android:textColor="#757682"/>
+                    <TextView
+                        android:id="@+id/tvPembayaranQrisLive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Rp 0"
+                        android:textSize="13sp"
+                        android:textColor="#191C1E"/>
+                </RelativeLayout>
+
+                <!-- 4. Total Pendapatan Jualan -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Pendapatan (Omset):"
+                        android:textSize="13sp"
+                        android:textColor="#757682"/>
+                    <TextView
+                        android:id="@+id/tvTotalPendapatanHariIni"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Rp 0"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:textColor="#00236F"/>
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginVertical="4dp"/>
+
+                <!-- 5. Total Fisik Laci Motor -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Uang di Laci Motor (Live Cash):"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#191C1E"/>
+                    <TextView
+                        android:id="@+id/tvTotalFisikLaciMotor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="Rp 0"
+                        android:textStyle="bold"
+                        android:textSize="15sp"
+                        android:textColor="#2E7D32"/>
+                </RelativeLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Card Chart Perbandingan Metode Pembayaran -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Perbandingan Metode Pembayaran Hari Ini"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#191C1E"
+                    android:layout_marginBottom="16dp"/>
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pieChartRiderPendapatan"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Card List Live Stok Produk Terlaris & Sisa Lapangan -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Katalog &amp; Peringkat Produk Terlaris"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#191C1E"
+                    android:layout_marginBottom="8dp"/>
+                <LinearLayout
+                    android:id="@+id/containerRankingProdukRider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/btnShortcutKasir"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:text="BUKA KASIR DIGITAL"
+            android:backgroundTint="#00236F"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="40dp">
+            <Button
+                android:id="@+id/btnMulaiJualan"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="MULAI JUALAN"
+                android:backgroundTint="#2E7D32"
+                android:textStyle="bold"/>
+            <Button
+                android:id="@+id/btnSelesaiJualan"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="SELESAI JUALAN"
+                android:backgroundTint="#C62828"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

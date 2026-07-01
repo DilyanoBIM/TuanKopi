@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvLabelForm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Form Produksi Subuh"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#3E2723"/>
+
+    <TextView
+        android:id="@+id/tvTanggalTerpilih"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvLabelForm"
+        android:text="Tanggal: YYYY-MM-DD"
+        android:textColor="#757575"
+        android:layout_marginTop="2dp"
+        android:textStyle="bold"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvInputProduk"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvTanggalTerpilih"
+        android:layout_above="@id/btnSaveStokGudang"
+        android:layout_marginVertical="12dp"/>
+
+    <Button
+        android:id="@+id/btnSaveStokGudang"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:text="SIMPAN PRODUKSI HARI INI"
+        android:backgroundTint="#3E2723"
+        android:textStyle="bold"/>
+</RelativeLayout>

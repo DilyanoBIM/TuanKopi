@@ -1,0 +1,409 @@
+package com.example.tuankopi
+
+import android.graphics.Color
+import android.graphics.Typeface
+import android.os.Bundle
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import com.example.tuankopi.databinding.FragmentRiderDashboardBinding
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+
+class RiderDashboardFragment : Fragment() {
+
+    private var _binding: FragmentRiderDashboardBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mFirestore: FirebaseFirestore
+    private val listeners = mutableListOf<ListenerRegistration>()
+
+    private var uidRider = ""
+    private var namaRider = ""
+    private var tanggalHariIni = ""
+
+    // Variabel penampung akumulasi pecahan keuangan laci motor harian sesuai kaidah POS akuntansi
+    private var modalKasAwalLokal = 0L
+    private var totalTunaiOmsetHariIni = 0f
+    private var totalQrisOmsetHariIni = 0f
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRiderDashboardBinding.inflate(inflater, container, false)
+        mAuth = FirebaseAuth.getInstance()
+        mFirestore = FirebaseFirestore.getInstance()
+
+        uidRider = mAuth.currentUser?.uid ?: ""
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        tanggalHariIni = sdf.format(Calendar.getInstance().time)
+
+        muatProfilRiderDasar()
+        jalankanLiveListenerDashboardRider()
+
+        binding.btnShortcutKasir.setOnClickListener {
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderKasirFragment())
+        }
+
+        return binding.root
+    }
+
+    private fun muatProfilRiderDasar() {
+        if (uidRider.isEmpty()) return
+        mFirestore.collection("users").document(uidRider).get()
+            .addOnSuccessListener { doc ->
+                if (!isAdded || doc == null || !doc.exists()) return@addOnSuccessListener
+                namaRider = doc.getString("nama") ?: "Rider"
+                binding.tvRiderWelcome.text = "Halo, $namaRider"
+                binding.tvRiderUid.text = "UID: $uidRider"
+            }
+    }
+
+    private fun jalankanLiveListenerDashboardRider() {
+        if (uidRider.isEmpty()) return
+        val cleanTgl = tanggalHariIni.replace("-", "")
+        val docIdStok = "${cleanTgl}_$uidRider"
+
+        // 1. LIVE MONITORING: Status, Modal Kembalian, dan Akumulasi Stok Keliling
+        val lrStok = mFirestore.collection("stok_harian").document(docIdStok)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || !isAdded) return@addSnapshotListener
+
+                if (snapshot == null || !snapshot.exists()) {
+                    updateUIVisibilityJualan("BELUM JUALAN")
+                    resetUIStokKopi()
+                    return@addSnapshotListener
+                }
+
+                val statusJualanLapangan = snapshot.getString("status_jualan") ?: "BELUM JUALAN"
+                updateUIVisibilityJualan(statusJualanLapangan)
+
+                // Render Modal Awal Berkas Logistik Owner secara Statis
+                modalKasAwalLokal = snapshot.getLong("modal_kembalian") ?: 0L
+                val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+                binding.tvModalKembalianDashboard.text = formatterRupiah.format(modalKasAwalLokal).replace(",00", "")
+
+                // Kalkulasi gabungan fisik isi laci motor terkini
+                updateTampilanUangLaciFisikLive()
+
+                var totalStokKumulatif = 0L
+                var totalTerjualKumulatif = 0L
+                var totalSisaKumulatif = 0L
+
+                val detailStokMap = snapshot.get("detail_stok") as? Map<*, *>
+                val petaRankingLokal = HashMap<String, Long>()
+
+                if (detailStokMap != null) {
+                    for ((_, value) in detailStokMap) {
+                        val dataMap = value as? Map<*, *> ?: continue
+                        val isDiterima = dataMap["diterima"] as? Boolean ?: false
+                        if (!isDiterima) continue
+
+                        val namaProd = dataMap["nama_produk"] as? String ?: "Menu"
+                        val totalProd = dataMap["total_stok"] as? Long ?: 0L
+                        val terjualProd = dataMap["terjual"] as? Long ?: 0L
+                        val sisaProd = dataMap["sisa_stok"] as? Long ?: 0L
+
+                        totalStokKumulatif += totalProd
+                        totalTerjualKumulatif += terjualProd
+                        totalSisaKumulatif += sisaProd
+
+                        petaRankingLokal[namaProd] = terjualProd
+                    }
+                }
+
+                binding.tvTotalStokBawaan.text = totalStokKumulatif.toString()
+                binding.tvTotalStokTerjual.text = totalTerjualKumulatif.toString()
+                binding.tvTotalStokSisa.text = totalSisaKumulatif.toString()
+
+                susunDaftarLiveRankingProduk(petaRankingLokal, detailStokMap)
+            }
+        listeners.add(lrStok)
+
+        // 2. LIVE MONITORING: Ringkasan Pendapatan Berjalan (Metode Pembayaran)
+        val lrTransactions = mFirestore.collection("transactions")
+            .whereEqualTo("id_rider", uidRider)
+            .whereEqualTo("status_pembayaran", "SUCCESS")
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot == null || !isAdded) return@addSnapshotListener
+
+                var totalTunai = 0f
+                var totalQris = 0f
+
+                for (doc in snapshot.documents) {
+                    val tglTrans = doc.getTimestamp("waktu_transaksi")?.toDate()
+                    if (tglTrans != null) {
+                        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(tglTrans)
+                        if (fmt != tanggalHariIni) continue
+                    }
+
+                    val metode = doc.getString("metode_pembayaran") ?: ""
+                    val totalHarga = doc.getLong("total_harga")?.toFloat() ?: 0f
+
+                    if (metode == "TUNAI") totalTunai += totalHarga
+                    else if (metode == "QRIS") totalQris += totalHarga
+                }
+
+                // Masukkan hasil data transaksi ke variabel state penampung fragment
+                totalTunaiOmsetHariIni = totalTunai
+                totalQrisOmsetHariIni = totalQris
+
+                updateTampilanUangLaciFisikLive()
+                tampilkanPieChartPendapatan(totalTunai, totalQris)
+            }
+        listeners.add(lrTransactions)
+    }
+
+    private fun updateTampilanUangLaciFisikLive() {
+        if (!isAdded) return
+        val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+
+        // A. Render Nominal Pendapatan Parsial Metode Pembayaran murni dari laci kasir digital
+        binding.tvPembayaranTunaiLive.text = formatterRupiah.format(totalTunaiOmsetHariIni.toLong()).replace(",00", "")
+        binding.tvPembayaranQrisLive.text = formatterRupiah.format(totalQrisOmsetHariIni.toLong()).replace(",00", "")
+
+        // B. Kalkulasi & Render Total Pendapatan Kotor Hari Ini (Tunai + QRIS)
+        val totalPendapatanGross = totalTunaiOmsetHariIni.toLong() + totalQrisOmsetHariIni.toLong()
+        binding.tvTotalPendapatanHariIni.text = formatterRupiah.format(totalPendapatanGross).replace(",00", "")
+
+        // ────────────────────────────────────────────────────────────────────────
+        // C. RUMUS LACI: Modal Kas Awal (Statis) + Pembayaran Tunai. Tanpa diganggu gugat!
+        // ────────────────────────────────────────────────────────────────────────
+        val akumulasiLaciMotor = modalKasAwalLokal + totalTunaiOmsetHariIni.toLong()
+        binding.tvTotalFisikLaciMotor.text = formatterRupiah.format(akumulasiLaciMotor).replace(",00", "")
+    }
+
+    private fun susunDaftarLiveRankingProduk(petaRanking: HashMap<String, Long>, detailStokMap: Map<*, *>?) {
+        val ctx = context ?: return
+        binding.containerRankingProdukRider.removeAllViews()
+
+        if (petaRanking.isEmpty() || detailStokMap == null) {
+            val tvKosong = TextView(ctx).apply {
+                text = "Belum ada item produk kopi yang dikonfirmasi/diterima."
+                setTextColor(Color.GRAY)
+                textSize = 12f
+                setPadding(0, 10, 0, 10)
+            }
+            binding.containerRankingProdukRider.addView(tvKosong)
+            return
+        }
+
+        val daftarUrut = petaRanking.toList().sortedByDescending { it.second }
+
+        daftarUrut.forEachIndexed { index, pair ->
+            val namaProductKey = pair.first
+            val totalTerjualItem = pair.second
+
+            var sisaStokItem = 0L
+            for ((_, value) in detailStokMap) {
+                val subMap = value as? Map<*, *> ?: continue
+                val namaProdDb = subMap["nama_produk"] as? String ?: ""
+                if (namaProdDb == namaProductKey) {
+                    sisaStokItem = subMap["sisa_stok"] as? Long ?: 0L
+                    break
+                }
+            }
+
+            val baris = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 12, 0, 12)
+
+                val tvNama = TextView(ctx).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f)
+                    text = "${index + 1}. $namaProductKey"
+                    setTypeface(null, Typeface.BOLD)
+                    setTextColor(Color.parseColor("#191C1E"))
+                    textSize = 13f
+                }
+
+                val tvQtyTerjual = TextView(ctx).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f)
+                    text = "$totalTerjualItem Terjual"
+                    setTextColor(Color.parseColor("#2E7D32"))
+                    setTypeface(null, Typeface.BOLD)
+                    textSize = 12f
+                    gravity = Gravity.END
+                }
+
+                val tvQtySisa = TextView(ctx).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f)
+                    text = "Sisa: $sisaStokItem Cup"
+                    setTextColor(Color.parseColor("#C62828"))
+                    setTypeface(null, Typeface.BOLD)
+                    textSize = 12f
+                    gravity = Gravity.END
+                }
+
+                addView(tvNama)
+                addView(tvQtyTerjual)
+                addView(tvQtySisa)
+            }
+            binding.containerRankingProdukRider.addView(baris)
+        }
+    }
+
+    private fun updateUIVisibilityJualan(statusJualan: String) {
+        val labelTeks = when (statusJualan) {
+            "SEDANG JUALAN" -> "SEDANG JUALAN"
+            "SELESAI JUALAN" -> "SELESAI JUALAN"
+            else -> "BELUM MULAI JUALAN"
+        }
+        binding.tvStatusHariIni.text = labelTeks
+
+        when (statusJualan) {
+            "SEDANG JUALAN" -> {
+                binding.tvStatusHariIni.setTextColor(Color.parseColor("#2E7D32"))
+                binding.btnShortcutKasir.visibility = View.VISIBLE
+                binding.btnMulaiJualan.isEnabled = false
+                binding.btnSelesaiJualan.isEnabled = true
+            }
+            "SELESAI JUALAN" -> {
+                binding.tvStatusHariIni.setTextColor(Color.parseColor("#C62828"))
+                binding.btnShortcutKasir.visibility = View.GONE
+                binding.btnMulaiJualan.isEnabled = false
+                binding.btnSelesaiJualan.isEnabled = false
+            }
+            else -> {
+                binding.tvStatusHariIni.setTextColor(Color.parseColor("#00236F"))
+                binding.btnShortcutKasir.visibility = View.GONE
+                binding.btnMulaiJualan.isEnabled = true
+                binding.btnSelesaiJualan.isEnabled = false
+            }
+        }
+
+        binding.btnMulaiJualan.setOnClickListener { merubahStatusJualanRider("SEDANG JUALAN") }
+        binding.btnSelesaiJualan.setOnClickListener { merubahStatusJualanRider("SELESAI JUALAN") }
+    }
+
+    private fun merubahStatusJualanRider(statusBaruJualan: String) {
+        val cleanTgl = tanggalHariIni.replace("-", "")
+        val docId = "${cleanTgl}_$uidRider"
+
+        mFirestore.collection("stok_harian").document(docId).get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot != null && snapshot.exists()) {
+                    val statusStokLogistik = snapshot.getString("status_stok") ?: "CLOSED"
+
+                    if (statusBaruJualan == "SEDANG JUALAN" && statusStokLogistik != "AKTIF") {
+                        Toast.makeText(context, "Gagal! Anda wajib mengonfirmasi terima jatah cup kopi di menu 'Konfirmasi Stok' terlebih dahulu!", Toast.LENGTH_LONG).show()
+                        return@addOnSuccessListener
+                    }
+
+                    mFirestore.collection("stok_harian").document(docId)
+                        .update("status_jualan", statusBaruJualan)
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Sukses! Status jualan: $statusBaruJualan", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            }
+    }
+
+    private fun resetUIStokKopi() {
+        binding.tvTotalStokBawaan.text = "0"
+        binding.tvTotalStokTerjual.text = "0"
+        binding.tvTotalStokSisa.text = "0"
+        binding.tvModalKembalianDashboard.text = "Rp 0"
+        binding.tvPembayaranTunaiLive.text = "Rp 0"
+        binding.tvPembayaranQrisLive.text = "Rp 0"
+        binding.tvTotalPendapatanHariIni.text = "Rp 0"
+        binding.tvTotalFisikLaciMotor.text = "Rp 0"
+        binding.containerRankingProdukRider.removeAllViews()
+    }
+
+    private fun tampilkanPieChartPendapatan(tunai: Float, qris: Float) {
+        val entriPie = ArrayList<PieEntry>()
+        val total = tunai + qris
+
+        val safeTunai = if (total == 0f) 50f else tunai
+        val safeQris = if (total == 0f) 50f else qris
+
+        val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        val labelTunaiFormat = formatterRupiah.format(safeTunai.toLong()).replace(",00", "")
+        val labelQrisFormat = formatterRupiah.format(safeQris.toLong()).replace(",00", "")
+
+        val pctTunai = if (total > 0) ((tunai / total) * 100).toInt() else 0
+        val pctQris = if (total > 0) ((qris / total) * 100).toInt() else 0
+
+        entriPie.add(PieEntry(safeTunai, "Tunai ($pctTunai%) $labelTunaiFormat"))
+        entriPie.add(PieEntry(safeQris, "QRIS ($pctQris%) $labelQrisFormat"))
+
+        val dataSet = PieDataSet(entriPie, "").apply {
+            colors = arrayListOf(Color.parseColor("#4682B4"), Color.parseColor("#B22222"))
+            sliceSpace = 2.5f
+
+            xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+            yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+            valueLinePart1OffsetPercentage = 75f
+            valueLinePart1Length = 0.3f
+            valueLinePart2Length = 0.4f
+            valueLineColor = Color.parseColor("#191C1E")
+        }
+
+        val dataPieFinal = PieData(dataSet).apply {
+            setValueTextColor(Color.parseColor("#191C1E"))
+            setValueTextSize(12f)
+            setValueTypeface(Typeface.DEFAULT_BOLD)
+
+            setValueFormatter(object : com.github.mikephil.charting.formatter.ValueFormatter() {
+                override fun getPieLabel(value: Float, pieEntry: PieEntry?): String {
+                    return pieEntry?.label ?: ""
+                }
+            })
+        }
+
+        binding.pieChartRiderPendapatan.apply {
+            data = dataPieFinal
+
+            isDrawHoleEnabled = false
+            description.isEnabled = false
+            setTouchEnabled(true)
+
+            setEntryLabelColor(Color.TRANSPARENT)
+            setEntryLabelTextSize(0f)
+            setUsePercentValues(false)
+
+            setExtraOffsets(50f, 16f, 50f, 12f)
+
+            legend.apply {
+                isEnabled = true
+                textColor = Color.parseColor("#191C1E")
+                textSize = 11f
+                typeface = Typeface.DEFAULT_BOLD
+
+                orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.VERTICAL
+                verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM
+                horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER
+                setDrawInside(false)
+
+                yEntrySpace = 6f
+            }
+
+            marker = PieChartMarkerView(context, tunai, qris)
+
+            animateY(650, com.github.mikephil.charting.animation.Easing.EaseOutQuad)
+            invalidate()
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listeners.forEach { it.remove() }
+        listeners.clear()
+        _binding = null
+    }
+}

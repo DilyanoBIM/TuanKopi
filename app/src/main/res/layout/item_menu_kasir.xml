@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tvNamaKopiKasir"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nama Menu Kopi"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"/>
+            <TextView
+                android:id="@+id/tvHargaKopiKasir"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rp 0"
+                android:textSize="12sp"
+                android:textColor="#00236F"/>
+            <TextView
+                android:id="@+id/tvSisaStokKasir"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ready Motor: 0 Cup"
+                android:textSize="11sp"
+                android:textColor="#C62828"
+                android:textStyle="italic"/>
+        </LinearLayout>
+
+        <!-- Stepper Tombol Tambah/Kurang Qty -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <Button
+                android:id="@+id/btnKurangiQty"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:text="-"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:backgroundTint="#E0E0E0"
+                android:textColor="#000000"/>
+            <TextView
+                android:id="@+id/tvQtyItemBelanja"
+                android:layout_width="36dp"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+            <Button
+                android:id="@+id/btnTambahQty"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:text="+"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:backgroundTint="#00236F"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

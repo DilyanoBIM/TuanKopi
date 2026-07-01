@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F8F9FB"
+    android:padding="16dp">
+
+    <!-- Header Judul -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pilih Tanggal Jualan"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#191C1E"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Silakan pilih tanggal untuk melihat detail muatan produk motor"
+        android:textSize="12sp"
+        android:textColor="#757682"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- State Kosong / Loading -->
+    <TextView
+        android:id="@+id/tvStokAktifKosong"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Memuat daftar tanggal aktif..."
+        android:textSize="13sp"
+        android:textColor="#757682"
+        android:gravity="center"
+        android:layout_marginTop="40dp"
+        android:visibility="visible"/>
+
+    <!-- RecyclerView Utama Penampung List Tanggal -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRiwayatStokTanggal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:visibility="gone"/>
+
+</LinearLayout>

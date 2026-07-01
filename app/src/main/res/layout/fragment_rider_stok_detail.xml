@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F8F9FB"
+    android:padding="16dp">
+
+    <!-- Baris Header Tombol Back & Judul Tanggal -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btnBackKeDaftarTanggal"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="&lt;"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#191C1E"
+            android:backgroundTint="#E0E0E0"
+            android:padding="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvDetailHeaderTanggal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detail Muatan Tanggal"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"/>
+
+            <TextView
+                android:id="@+id/tvDetailHeaderModal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modal Kembalian: Rp 0"
+                android:textSize="12sp"
+                android:textColor="#757682"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- RecyclerView Khusus Penampung Katalog Kopi -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvKatalogProdukDetail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"/>
+
+</LinearLayout>

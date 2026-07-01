@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019808973810",
+    "project_id": "tuan-kopi",
+    "storage_bucket": "tuan-kopi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019808973810:android:1d14b28f9528fb93aca16b",
+        "android_client_info": {
+          "package_name": "com.example.tuankopi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTo5NR8jTv-cAZmdkzqTEyKCyCqNqSVow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
