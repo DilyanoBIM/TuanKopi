@@ -19,7 +19,8 @@ class ManageRiderActivity : AppCompatActivity() {
         binding = ActivityManageRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Mengaktifkan Tombol Panah Kembali ke Dashboard Owner
+        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan NoActionBar
+        setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Kelola Operasional Rider"
 
@@ -75,7 +76,7 @@ class ManageRiderActivity : AppCompatActivity() {
         mFirestore.collection("users").document(uid)
             .update("status_akun", statusBaru)
             .addOnSuccessListener {
-                val pesan = if (statusBaru) "Akun diaktifkan" else "Akun dinonaktifkan"
+                val pesan = if (statusBaru) "Account diaktifkan" else "Account dinonaktifkan"
                 Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->

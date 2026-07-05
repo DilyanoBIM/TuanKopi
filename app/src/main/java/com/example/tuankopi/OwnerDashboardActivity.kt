@@ -7,6 +7,8 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.ActivityOwnerDashboardBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -23,10 +25,18 @@ class OwnerDashboardActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
 
-        // Atur judul action bar utama dashboard
+        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan pada Owner
+        setSupportActionBar(binding.ownerToolbar)
         supportActionBar?.title = "Tuan Kopi - Owner"
 
-        // Setel Fragment yang pertama kali muncul saat aplikasi dibuka (Dashboard/Home)
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
+        ViewCompat.setOnApplyWindowInsetsListener(binding.ownerToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
+
+        // Setel Fragment yang pertama kali muncul saat aplikasi dibuka
         if (savedInstanceState == null) {
             gantiFragment(HomeFragment())
         }
@@ -62,16 +72,16 @@ class OwnerDashboardActivity : AppCompatActivity() {
     }
 
     // ────────────────────────────────────────────────────────────────────────
-    // LOGIKA OPERASI LOGOUT (OPTIONS MENU)
+    // LOGIKA OPERASI LOGOUT MELALUI STANDAR OPTION MENU TOOLBAR
     // ────────────────────────────────────────────────────────────────────────
 
-    // Inflate item menu logout ke Toolbar atas
+    // Menginflasi menu_owner_dashboard ke dalam Toolbar yang sudah di-setSupportActionBar
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_owner_dashboard, menu)
         return true
     }
 
-    // Handle aksi klik pada item menu logout
+    // Menangani aksi klik pada item menu di Toolbar secara valid dan stabil
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
@@ -86,16 +96,14 @@ class OwnerDashboardActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Konfirmasi Keluar")
             .setMessage("Apakah Anda yakin ingin keluar dari akun Owner?")
-            .setPositiveButton("Logout") { _, _ -> // Mengubah 'dialog, _' menjadi '_, _'
+            .setPositiveButton("Logout") { _, _ ->
                 // 1. Putus sesi Firebase Authentication secara total
                 mAuth.signOut()
 
                 Toast.makeText(this, "Berhasil keluar dari sistem", Toast.LENGTH_SHORT).show()
 
-                // 2. Tendang balik ke halaman LoginActivity
+                // 2. Tendang balik ke halaman LoginActivity dan bersihkan backstack
                 val intent = Intent(this, LoginActivity::class.java)
-
-                // Bersihkan tumpukan activity (Backstack) agar user tidak bisa klik tombol back untuk kembali
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()

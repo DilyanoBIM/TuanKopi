@@ -5,9 +5,12 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.tuankopi.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginActivity : AppCompatActivity() {
 
@@ -36,69 +39,64 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            prosesAutentikasiFirebase(email, password)
+            lifecycleScope.launch {
+                jalankanProsesLogin(email, password)
+            }
         }
     }
 
-    private fun prosesAutentikasiFirebase(email: String, password: String) {
+    private suspend fun jalankanProsesLogin(email: String, password: String) {
         binding.progressBar.visibility = View.VISIBLE
         binding.btnSignIn.visibility = View.GONE
 
-        mAuth.signInWithEmailAndPassword(email, password)
-            .addOnSuccessListener { authResult ->
-                val uid = authResult.user?.uid
-                if (uid != null) {
-                    cekRoleUserKeFirestore(uid)
-                } else {
-                    resetKomponenUI("Gagal mengidentifikasi User ID")
-                }
+        try {
+            // .await() secara asinkron menunggu respons jaringan tanpa memblokir Main Thread
+            val authResult = mAuth.signInWithEmailAndPassword(email, password).await()
+            val uid = authResult.user?.uid
+
+            if (uid == null) {
+                resetKomponenUI("Gagal mengidentifikasi User ID")
+                return
             }
-            .addOnFailureListener { exception ->
-                resetKomponenUI("Autentikasi Gagal: ${exception.localizedMessage}")
-            }
-    }
 
-    private fun cekRoleUserKeFirestore(uid: String) {
-        mFirestore.collection("users").document(uid).get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
+            val document = mFirestore.collection("users").document(uid).get().await()
 
-                    val statusAkun = document.getBoolean("status_akun") ?: false
-                    if (!statusAkun) {
-                        mAuth.signOut()
-                        resetKomponenUI("Akun Anda dinonaktifkan oleh Owner.")
-                        return@addOnSuccessListener
-                    }
-
-                    val namaUser = document.getString("nama") ?: "User"
-                    val role = document.getString("role")
-
-                    Toast.makeText(this, "Selamat Datang, $namaUser!", Toast.LENGTH_SHORT).show()
-
-                    when (role) {
-                        "owner" -> {
-                            val intent = Intent(this, OwnerDashboardActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-                        "rider" -> {
-                            val intent = Intent(this, RiderDashboardActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-                        else -> {
-                            mAuth.signOut()
-                            resetKomponenUI("Hak akses (Role) tidak dikenali sistem.")
-                        }
-                    }
-                } else {
+            if (document != null && document.exists()) {
+                // Verifikasi status akun langsung di sini (tidak perlu Dispatchers.Default)
+                val statusAkun = document.getBoolean("status_akun") ?: false
+                if (!statusAkun) {
                     mAuth.signOut()
-                    resetKomponenUI("Profil akun belum terdaftar di database Firestore.")
+                    resetKomponenUI("Akun Anda dinonaktifkan oleh Owner.")
+                    return // Sekarang return ini benar-benar menghentikan fungsi jalankanProsesLogin
                 }
+
+                val namaUser = document.getString("nama") ?: "User"
+                val role = document.getString("role")
+
+                Toast.makeText(this@LoginActivity, "Selamat Datang, $namaUser!", Toast.LENGTH_SHORT).show()
+
+                when (role) {
+                    "owner" -> {
+                        startActivity(Intent(this@LoginActivity, OwnerDashboardActivity::class.java))
+                        finish()
+                    }
+                    "rider" -> {
+                        startActivity(Intent(this@LoginActivity, RiderDashboardActivity::class.java))
+                        finish()
+                    }
+                    else -> {
+                        mAuth.signOut()
+                        resetKomponenUI("Hak akses (Role) tidak dikenali sistem.")
+                    }
+                }
+            } else {
+                mAuth.signOut()
+                resetKomponenUI("Profil akun belum terdaftar di database Firestore.")
             }
-            .addOnFailureListener { exception ->
-                resetKomponenUI("Gagal memuat data peran: ${exception.localizedMessage}")
-            }
+
+        } catch (e: Exception) {
+            resetKomponenUI("Terjadi kesalahan: ${e.localizedMessage}")
+        }
     }
 
     private fun resetKomponenUI(pesanError: String) {

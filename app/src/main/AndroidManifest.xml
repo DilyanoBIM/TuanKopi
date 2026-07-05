@@ -1,52 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.tuankopi"> <application
-    android:allowBackup="true"
-    android:dataExtractionRules="@xml/data_extraction_rules"
-    android:fullBackupContent="@xml/backup_rules"
-    android:icon="@mipmap/ic_launcher"
-    android:label="@string/app_name"
-    android:roundIcon="@mipmap/ic_launcher_round"
-    android:supportsRtl="true"
-    android:theme="@style/Theme.TuanKopi">
+    package="com.example.tuankopi">
 
-    <activity
-        android:name="com.example.tuankopi.LoginActivity"
-        android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-    </activity>
+    <!-- CRITICAL: Permissions required for Firebase and network communication -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <activity
-        android:name="com.example.tuankopi.OwnerDashboardActivity"
-        android:exported="false" />
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TuanKopi">
 
-    <activity
-        android:name="com.example.tuankopi.RiderDashboardActivity"
-        android:exported="false" />
+        <activity
+            android:name="com.example.tuankopi.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-    <activity
-        android:name="com.example.tuankopi.AddRiderActivity"
-        android:exported="false" />
-    <activity android:name=".ManageRiderActivity" android:exported="false" />
-    <activity android:name=".DetailRiderActivity" android:exported="false" />
-    <activity android:name=".ManageProductActivity" android:exported="false" />
-    <activity android:name=".AddProductActivity" android:exported="false" />
-    <activity android:name=".DetailProductActivity" android:exported="false" />
+        <activity
+            android:name="com.example.tuankopi.OwnerDashboardActivity"
+            android:exported="false" />
 
-    <activity android:name=".ManageStokGudangActivity" android:exported="false" />
-    <activity android:name=".InputStokGudangActivitygapakai" android:exported="false" />
-    <activity android:name=".DetailStokGudangActivity" android:exported="false" />
-    <activity android:name=".PilihProdukGudangActivity" android:exported="false" />
+        <activity
+            android:name="com.example.tuankopi.RiderDashboardActivity"
+            android:exported="false" />
 
-    <activity android:name=".distribusi.ManageDistribusiActivity" android:exported="false" />
-    <activity android:name=".distribusi.PilihRiderActivity" android:exported="false" />
-    <activity android:name=".distribusi.DetailDistribusiRiderActivity" android:exported="false" />
-    <activity android:name=".distribusi.InputSuplaiRiderActivity" android:exported="false" />
+        <activity
+            android:name="com.example.tuankopi.AddRiderActivity"
+            android:exported="false" />
 
-</application>
+        <activity android:name=".ManageRiderActivity" android:exported="false" />
+        <activity android:name=".DetailRiderActivity" android:exported="false" />
+        <activity android:name=".ManageProductActivity" android:exported="false" />
+        <activity android:name=".AddProductActivity" android:exported="false" />
+        <activity android:name=".DetailProductActivity" android:exported="false" />
+
+        <activity android:name=".ManageStokGudangActivity" android:exported="false" />
+        <activity android:name=".InputStokGudangActivitygapakai" android:exported="false" />
+        <activity android:name=".DetailStokGudangActivity" android:exported="false" />
+        <activity android:name=".PilihProdukGudangActivity" android:exported="false" />
+
+        <activity android:name=".distribusi.ManageDistribusiActivity" android:exported="false" />
+        <activity android:name=".distribusi.PilihRiderActivity" android:exported="false" />
+        <activity android:name=".distribusi.DetailDistribusiRiderActivity" android:exported="false" />
+        <activity android:name=".distribusi.InputSuplaiRiderActivity" android:exported="false" />
+
+    </application>
 
 </manifest>

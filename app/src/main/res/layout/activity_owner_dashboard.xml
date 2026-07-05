@@ -1,31 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#F5F5F5">
 
+    <!-- BUNGKUS DENGAN APPBARLAYOUT UNTUK MEMBERIKAN RUANG LEBIH LUAS KE BAWAH -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#6200EE"
+        app:elevation="4dp">
+
+        <!-- TOOLBAR CUSTOM SEBAGAI TOP NAVIGATION BAR OWNER -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/owner_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:titleTextColor="#FFFFFF"
+            app:title="Tuan Kopi - Owner"
+            app:menu="@menu/menu_owner_dashboard" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Container Wadah Fragment -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottom_navigation" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_above="@id/bottom_navigation"
-        android:background="#E0E0E0" />
-
+    <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="#FFFFFF"
-        app:elevation="8dp"
-        app:itemIconTint="#3E2723"
-        app:itemTextColor="#3E2723"
+        app:backgroundTint="#FFFFFF"
         app:menu="@menu/bottom_nav_owner" />
 
-</RelativeLayout>
+</LinearLayout>

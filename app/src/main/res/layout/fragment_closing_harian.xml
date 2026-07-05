@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rangkuman Omset Hari Ini"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Baris Informasi Data -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset QRIS Sistem:" />
+        <TextView android:id="@+id/tvQrisSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset Tunai Sistem:" />
+        <TextView android:id="@+id/tvTunaiSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
+    </LinearLayout>
+
+    <!-- TOTAL PENJUALAN (OMSET TUNAI + QRIS) -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Total Penjualan (Omset Gabungan):" android:textColor="#00236F" android:textStyle="bold"/>
+        <TextView android:id="@+id/tvTotalPenjualanSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#00236F" android:text="Rp 0"/>
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Modal Kembalian (Stok Harian):" />
+        <TextView android:id="@+id/tvModalSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginVertical="16dp"/>
+
+    <TextView
+        android:id="@+id/tvTargetFisik"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Target Uang di Laci: Rp 0"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#C62828"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- WADAH 1: FORM INPUT (Hanya tampil jika BELUM closing) -->
+    <LinearLayout
+        android:id="@+id/layoutInputFisik"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Masukkan Uang Tunai Fisik Asli (Modal + Omset Tunai):"/>
+
+        <EditText
+            android:id="@+id/etUangFisik"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="Contoh: 150000"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSelisih"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Selisih: Rp 0"
+            android:textStyle="italic"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/btnKirimClosing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kirim Laporan &amp; Kunci Aplikasi"
+            android:backgroundTint="#00236F" />
+    </LinearLayout>
+
+    <!-- WADAH 2: PANEL STATUS (Hanya tampil jika SUDAH closing) -->
+    <LinearLayout
+        android:id="@+id/layoutStatusClosing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#F8F9FB"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Laporan Selesai &amp; Terkunci!"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#191C1E"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvInfoFisikTerkirim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Uang Disetorkan: Rp 0"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status Validasi Owner:"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:textColor="#757575"/>
+
+        <TextView
+            android:id="@+id/tvStatusValidasi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PENDING"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:textColor="#F57F17"/>
+    </LinearLayout>
+
+</LinearLayout>

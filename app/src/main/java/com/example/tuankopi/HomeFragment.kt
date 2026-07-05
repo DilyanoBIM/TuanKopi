@@ -33,7 +33,6 @@ class HomeFragment : Fragment() {
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mFirestore: FirebaseFirestore
 
-    // Simpan referensi listener agar bisa di-detach saat fragment destroy
     private val listeners = mutableListOf<ListenerRegistration>()
 
     override fun onCreateView(
@@ -46,125 +45,139 @@ class HomeFragment : Fragment() {
         mFirestore = FirebaseFirestore.getInstance()
 
         muatDataProfilOwner()
-        muatAnalitikBisnisUtama()
+        muatAnalitikBisnisRealtime()
 
         return binding.root
     }
 
-    // ─────────────────────────────────────────────
-    // Profil Owner – satu kali baca, tidak perlu realtime
-    // ─────────────────────────────────────────────
-    // ─────────────────────────────────────────────
-    // Profil Owner – satu kali baca, tidak perlu realtime
-    // ─────────────────────────────────────────────
     private fun muatDataProfilOwner() {
         val uid = mAuth.currentUser?.uid ?: return
         mFirestore.collection("users").document(uid)
             .get()
             .addOnSuccessListener { doc ->
                 if (!isAdded || doc == null || !doc.exists()) return@addOnSuccessListener
-
-                // Mengambil field nama dan role dari dokumen Firestore
                 val namaUser = doc.getString("nama") ?: "User"
                 val roleUser = doc.getString("role") ?: "owner"
-
-                // Set text sapaan: "Selamat datang, Bimo Dilyano (owner)"
                 binding.tvNamaDashboard.text = "$namaUser ($roleUser)"
             }
             .addOnFailureListener {
-                if (isAdded) {
-                    binding.tvNamaDashboard.text = "Owner Tuan Kopi"
-                }
+                if (isAdded) binding.tvNamaDashboard.text = "Owner Tuan Kopi"
             }
     }
 
-    // ─────────────────────────────────────────────
-    // Analitik utama
-    // closing_laporan  → realtime (data utama dashboard)
-    // transactions     → get() satu kali (tren chart)
-    // ─────────────────────────────────────────────
-    private fun muatAnalitikBisnisUtama() {
-        val sdf            = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val tanggalHariIni = sdf.format(Calendar.getInstance().time)
+    private fun muatAnalitikBisnisRealtime() {
+        val cal = Calendar.getInstance()
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-        val reg = mFirestore.collection("closing_laporan")
+        val tanggalHariIni = sdf.format(cal.time)
+
+        // Setup batas waktu awal minggu ini (Senin)
+        val calMinggu = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }
+        val waktuMulaiMinggu = calMinggu.time
+
+        // Setup batas waktu awal bulan ini
+        val calBulan = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }
+        val waktuMulaiBulan = calBulan.time
+
+        // Realtime Listener pada koleksi transactions untuk omset, metode bayar, dan live ranking
+        val regTransactions = mFirestore.collection("transactions")
+            .whereEqualTo("status_pembayaran", "SUCCESS")
             .addSnapshotListener { snapshots, error ->
                 if (error != null || snapshots == null || !isAdded) return@addSnapshotListener
 
-                var omsetHariIni      = 0.0
-                var omsetMingguIni    = 0.0
-                var omsetBulanIni     = 0.0
+                var omsetHariIni   = 0.0
+                var omsetMingguIni = 0.0
+                var omsetBulanIni  = 0.0
+
                 var totalTunaiHariIni = 0f
                 var totalQrisHariIni  = 0f
+
                 val petaRankingRider  = HashMap<String, Double>()
+                val entriBarChart     = ArrayList<BarEntry>()
 
-                for (doc in snapshots.documents) {
-                    val tanggalDoc  = doc.getString("tanggal")           ?: ""
-                    val omsetSistem = doc.getDouble("total_omset_sistem") ?: 0.0
-                    val tunaiSistem = doc.getDouble("total_tunai_sistem") ?: 0.0
-                    val qrisSistem  = doc.getDouble("total_qris_sistem")  ?: 0.0
-                    val namaRider   = doc.getString("nama_rider")         ?: "Rider"
+                snapshots.documents.forEachIndexed { idx, doc ->
+                    val totalHarga        = doc.getLong("total_harga")?.toDouble() ?: 0.0
+                    val metodePembayaran  = doc.getString("metode_pembayaran") ?: "TUNAI"
+                    val namaRider         = doc.getString("nama_rider") ?: "Rider"
+                    val waktuTransaksi    = doc.getTimestamp("waktu_transaksi")?.toDate()
 
-                    if (tanggalDoc == tanggalHariIni) {
-                        omsetHariIni      += omsetSistem
-                        totalTunaiHariIni += tunaiSistem.toFloat()
-                        totalQrisHariIni  += qrisSistem.toFloat()
-                        petaRankingRider[namaRider] =
-                            (petaRankingRider[namaRider] ?: 0.0) + omsetSistem
+                    if (waktuTransaksi != null) {
+                        val tanggalTransStr = sdf.format(waktuTransaksi)
+
+                        // 1. Validasi Harian
+                        if (tanggalTransStr == tanggalHariIni) {
+                            omsetHariIni += totalHarga
+                            if (metodePembayaran == "QRIS") {
+                                totalQrisHariIni += totalHarga.toFloat()
+                            } else {
+                                totalTunaiHariIni += totalHarga.toFloat()
+                            }
+
+                            // Akumulasi ranking rider harian
+                            petaRankingRider[namaRider] = (petaRankingRider[namaRider] ?: 0.0) + totalHarga
+                        }
+
+                        // 2. Validasi Mingguan
+                        if (waktuTransaksi.after(waktuMulaiMinggu) || tanggalTransStr == sdf.format(waktuMulaiMinggu)) {
+                            omsetMingguIni += totalHarga
+                        }
+
+                        // 3. Validasi Bulanan
+                        if (waktuTransaksi.after(waktuMulaiBulan) || tanggalTransStr == sdf.format(waktuMulaiBulan)) {
+                            omsetBulanIni += totalHarga
+                        }
                     }
-                    omsetMingguIni += omsetSistem
-                    omsetBulanIni  += omsetSistem
+
+                    // Bar Chart mengambil data list transaksi sukses berjalan
+                    entriBarChart.add(BarEntry(idx.toFloat(), totalHarga.toFloat()))
                 }
 
                 if (!isAdded) return@addSnapshotListener
 
+                // Render komponen ke layout
                 binding.tvOmsetHarian.text   = formatRupiah(omsetHariIni)
                 binding.tvOmsetMingguan.text = formatRupiah(omsetMingguIni)
                 binding.tvOmsetBulanan.text  = formatRupiah(omsetBulanIni)
 
                 tampilkanPieChartMetodePembayaran(totalTunaiHariIni, totalQrisHariIni)
                 susunTabelLiveRankingRider(petaRankingRider)
+                tampilkanBarChartTrenPenjualan(entriBarChart)
+
+                // Kalkulasi laba bersih setelah omset hari ini siap
                 hitungLabaBersih(omsetHariIni, tanggalHariIni)
             }
-        listeners.add(reg)
-
-        // Bar chart tren – cukup get() satu kali, tidak perlu realtime
-        mFirestore.collection("transactions")
-            .whereEqualTo("status_pembayaran", "SUCCESS")
-            .get()
-            .addOnSuccessListener { snapshots ->
-                if (snapshots == null || !isAdded) return@addOnSuccessListener
-                val entriBar = ArrayList<BarEntry>()
-                snapshots.documents.forEachIndexed { idx, doc ->
-                    val harga = doc.getDouble("total_harga") ?: 0.0
-                    entriBar.add(BarEntry(idx.toFloat(), harga.toFloat()))
-                }
-                if (entriBar.isNotEmpty()) tampilkanBarChartTrenPenjualan(entriBar)
-            }
+        listeners.add(regTransactions)
     }
 
-    // ─────────────────────────────────────────────
-    // Laba bersih – get() satu kali
-    // ─────────────────────────────────────────────
     private fun hitungLabaBersih(omsetHariIni: Double, tanggalHariIni: String) {
         mFirestore.collection("operasional_expenses")
             .whereEqualTo("tanggal", tanggalHariIni)
             .get()
             .addOnSuccessListener { snapshots ->
                 if (snapshots == null || !isAdded) return@addOnSuccessListener
-                var totalPengeluaran = 0.0
+                var totalPengeluaranField = 0.0
                 for (doc in snapshots.documents) {
-                    totalPengeluaran += doc.getDouble("nominal") ?: 0.0
+                    totalPengeluaranField += doc.getLong("nominal")?.toDouble() ?: 0.0
                 }
-                val labaBersih = omsetHariIni - (omsetHariIni * 0.4) - totalPengeluaran
-                if (isAdded) binding.tvLabaBersih.text = formatRupiah(labaBersih)
+
+                // Formula: Laba Kotor - Estimasi HPP 40% - Pengeluaran Lapangan Terduga
+                val labaBersihFinal = omsetHariIni - (omsetHariIni * 0.4) - totalPengeluaranField
+                if (isAdded) binding.tvLabaBersih.text = formatRupiah(labaBersihFinal)
             }
     }
 
-    // ─────────────────────────────────────────────
-    // Bar Chart Tren Penjualan
-    // ─────────────────────────────────────────────
     private fun tampilkanBarChartTrenPenjualan(listEntri: ArrayList<BarEntry>) {
+        if (listEntri.isEmpty()) return
         val dataSet = BarDataSet(listEntri, "").apply {
             color          = Color.parseColor("#00236F")
             highLightColor = Color.parseColor("#4B6BCC")
@@ -192,18 +205,15 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Pie Chart Metode Pembayaran
-    // ─────────────────────────────────────────────
     private fun tampilkanPieChartMetodePembayaran(tunai: Float, qris: Float) {
-        val safeQris  = if (tunai == 0f && qris == 0f) 65f else qris
-        val safeTunai = if (tunai == 0f && qris == 0f) 35f else tunai
+        val safeQris  = if (tunai == 0f && qris == 0f) 0f else qris
+        val safeTunai = if (tunai == 0f && qris == 0f) 0f else tunai
         val total     = safeQris + safeTunai
-        val pctQris   = if (total > 0) (safeQris / total * 100).toInt() else 65
+        val pctQris   = if (total > 0) ((safeQris / total) * 100).toInt() else 0
 
         val entriPie = arrayListOf(
-            PieEntry(safeQris,  "QRIS"),
-            PieEntry(safeTunai, "Tunai")
+            PieEntry(if (total == 0f) 1f else safeQris, "QRIS"),
+            PieEntry(if (total == 0f) 0f else safeTunai, "Tunai")
         )
 
         val dataSet = PieDataSet(entriPie, "").apply {
@@ -236,12 +246,20 @@ class HomeFragment : Fragment() {
         binding.tvTunaiAmount.text = formatRupiah(safeTunai.toDouble())
     }
 
-    // ─────────────────────────────────────────────
-    // Tabel Live Ranking Rider
-    // ─────────────────────────────────────────────
     private fun susunTabelLiveRankingRider(petaRanking: HashMap<String, Double>) {
         val ctx = context ?: return
         binding.containerRankingRider.removeAllViews()
+
+        if (petaRanking.isEmpty()) {
+            binding.containerRankingRider.addView(TextView(ctx).apply {
+                text = "Belum ada transaksi hari ini"
+                setPadding(32, 32, 32, 32)
+                gravity = android.view.Gravity.CENTER
+                textSize = 13f
+                setTextColor(Color.GRAY)
+            })
+            return
+        }
 
         val daftarUrut = petaRanking.toList().sortedByDescending { it.second }
 
@@ -318,9 +336,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────
     private fun dp(context: Context, dp: Int): Int =
         (dp * context.resources.displayMetrics.density).toInt()
 
@@ -329,9 +344,6 @@ class HomeFragment : Fragment() {
             .format(angka)
             .replace(",00", "")
 
-    // ─────────────────────────────────────────────
-    // Lifecycle – detach semua listener agar tidak memory leak
-    // ─────────────────────────────────────────────
     override fun onDestroyView() {
         super.onDestroyView()
         listeners.forEach { it.remove() }

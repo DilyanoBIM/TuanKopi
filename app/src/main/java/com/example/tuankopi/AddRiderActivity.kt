@@ -22,6 +22,8 @@ class AddRiderActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // 1. Mengaktifkan Tombol Panah Kembali di Toolbar Atas Android
+        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Tambah Rider Baru"
 

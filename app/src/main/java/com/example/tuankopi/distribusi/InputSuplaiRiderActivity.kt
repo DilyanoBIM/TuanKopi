@@ -41,7 +41,10 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
         binding = ActivityPilihProdukGudangBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Bagi Jatah: ${intent.getStringExtra("RIDER_NAMA") ?: ""}"
         mFirestore = FirebaseFirestore.getInstance()
 
         targetTanggal = intent.getStringExtra("TARGET_TANGGAL") ?: ""

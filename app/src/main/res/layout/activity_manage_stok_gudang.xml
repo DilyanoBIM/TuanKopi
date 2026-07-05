@@ -1,36 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <TextView
-        android:id="@+id/tvHeaderGudang"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Riwayat Produksi &amp; Stok Gudang"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="#3E2723"
-        android:layout_margin="16dp"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvTanggalGudang"
+    <!-- TOP NAVIGATION TOOLBAR -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/custom_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/tvHeaderGudang"
-        android:paddingBottom="80dp"
-        android:clipToPadding="false"/>
+        android:layout_height="?attr/actionBarSize"
+        android:background="#3E2723"
+        app:titleTextColor="#FFFFFF" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddStokGudang"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="24dp"
-        android:backgroundTint="#3E2723"
-        app:tint="#FFFFFF"
-        app:srcCompat="@android:drawable/ic_input_add" />
-</RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tvHeaderGudang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Riwayat Produksi &amp; Stok Gudang"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_margin="16dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTanggalGudang"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tvHeaderGudang"
+            android:paddingBottom="80dp"
+            android:clipToPadding="false"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddStokGudang"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="24dp"
+            android:backgroundTint="#3E2723"
+            app:tint="#FFFFFF"
+            app:srcCompat="@android:drawable/ic_input_add" />
+    </RelativeLayout>
+</LinearLayout>

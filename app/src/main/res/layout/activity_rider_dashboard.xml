@@ -1,27 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_dashboard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- Container Wadah Fragment -->
+    <!-- TOOLBAR CUSTOM SEBAGAI TOP NAVIGATION BAR -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/rider_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#6200EE"
+        app:titleTextColor="#FFFFFF"
+        app:title="Tuan Kopi - Rider"
+        app:menu="@menu/menu_rider_top" />
+
+    <!-- Container Wadah Fragment (Mengambil sisa ruang yang ada) -->
     <FrameLayout
         android:id="@+id/rider_fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/rider_bottom_navigation" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/rider_bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="#FFFFFF"
         app:backgroundTint="#FFFFFF"
         app:itemIconTint="#3E2723"
         app:itemTextColor="#3E2723"
         app:menu="@menu/menu_rider_dashboard" />
 
-</RelativeLayout>
+</LinearLayout>

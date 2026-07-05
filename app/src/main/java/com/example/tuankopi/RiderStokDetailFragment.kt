@@ -49,7 +49,7 @@ class RiderStokDetailFragment : Fragment() {
         arguments?.let {
             targetDocId = it.getString("ARG_DOC_ID") ?: ""
             stringTanggal = it.getString("ARG_TANGGAL") ?: ""
-            nominalModal = it.getLong("ARG_MODAL") ?: 0L
+            nominalModal = it.getLong("ARG_MODAL")
         }
     }
 

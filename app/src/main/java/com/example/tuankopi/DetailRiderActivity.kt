@@ -13,9 +13,10 @@ class DetailRiderActivity : AppCompatActivity() {
         binding = ActivityDetailRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Mengaktifkan Tombol Panah Kembali di Toolbar Atas Android
+        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Detail Karyawan" // Mengubah judul bar atas
+        supportActionBar?.title = "Detail Karyawan"
 
         // Tangkap data dari Intent
         val uid = intent.getStringExtra("RIDER_UID") ?: "-"

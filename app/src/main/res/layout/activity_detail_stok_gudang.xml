@@ -1,39 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="12dp">
+    android:orientation="vertical"
+    android:background="#F5F5F5">
 
-    <TextView
-        android:id="@+id/tvDetailHeaderTanggal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Rincian Produksi: Tanggal"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#3E2723"
-        android:layout_margin="8dp"/>
+    <!-- TOP NAVIGATION TOOLBAR -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/custom_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#3E2723"
+        app:titleTextColor="#FFFFFF" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDetailGudang"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tvDetailHeaderTanggal"
-        android:paddingBottom="80dp"
-        android:clipToPadding="false"/>
+        android:padding="12dp">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddItemKeTanggal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        android:backgroundTint="#3E2723"
-        app:tint="#FFFFFF"
-        app:srcCompat="@android:drawable/ic_input_add"
-        android:contentDescription="Tambah Item" />
+        <TextView
+            android:id="@+id/tvDetailHeaderTanggal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rincian Produksi: Tanggal"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_margin="8dp"/>
 
-</RelativeLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDetailGudang"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tvDetailHeaderTanggal"
+            android:paddingBottom="80dp"
+            android:clipToPadding="false"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddItemKeTanggal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="16dp"
+            android:backgroundTint="#3E2723"
+            app:tint="#FFFFFF"
+            app:srcCompat="@android:drawable/ic_input_add"
+            android:contentDescription="Tambah Item" />
+    </RelativeLayout>
+</LinearLayout>

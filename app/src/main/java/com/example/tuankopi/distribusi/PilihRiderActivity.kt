@@ -25,7 +25,10 @@ class PilihRiderActivity : AppCompatActivity() {
         binding = ActivityPilihRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Rider - ${intent.getStringExtra("TARGET_TANGGAL") ?: ""}"
         mFirestore = FirebaseFirestore.getInstance()
 
         tanggalTarget = intent.getStringExtra("TARGET_TANGGAL") ?: ""

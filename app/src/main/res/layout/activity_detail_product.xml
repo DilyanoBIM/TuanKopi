@@ -1,48 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
     android:background="#FFFFFF"
     tools:ignore="HardcodedText">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Detail Informasi Menu"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="#3E2723"
-        android:layout_marginBottom="24dp"/>
+    <!-- TOP NAVIGATION TOOLBAR -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/custom_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#3E2723"
+        app:titleTextColor="#FFFFFF" />
 
-    <TextView
-        android:id="@+id/tvDetailIdProduk"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ID Produk: -"
-        android:textSize="16sp"
-        android:textColor="#757575"
-        android:layout_marginBottom="12dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <TextView
-        android:id="@+id/tvDetailNamaProduk"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nama Menu: -"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="#212121"
-        android:layout_marginBottom="12dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Detail Informasi Menu"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723"
+            android:layout_marginBottom="24dp"/>
 
-    <TextView
-        android:id="@+id/tvDetailHargaProduk"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Harga Jual: Rp0"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#2E7D32" />
+        <TextView
+            android:id="@+id/tvDetailIdProduk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID Produk: -"
+            android:textSize="16sp"
+            android:textColor="#757575"
+            android:layout_marginBottom="12dp"/>
 
+        <TextView
+            android:id="@+id/tvDetailNamaProduk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nama Menu: -"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvDetailHargaProduk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Harga Jual: Rp0"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32" />
+    </LinearLayout>
 </LinearLayout>

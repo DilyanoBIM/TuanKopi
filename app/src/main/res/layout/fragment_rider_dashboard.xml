@@ -284,11 +284,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Katalog &amp; Peringkat Produk Terlaris"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="#191C1E"
-                    android:layout_marginBottom="8dp"/>
+                    android:text="Katalog &amp; Peringkat Produk Terlaris (Live)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"
+                android:layout_marginBottom="8dp"/>
                 <LinearLayout
                     android:id="@+id/containerRankingProdukRider"
                     android:layout_width="match_parent"

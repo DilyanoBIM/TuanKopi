@@ -482,6 +482,7 @@
                 </RelativeLayout>
 
                 <!-- Table Header -->
+                <!-- Cari baris "Table Header" di dalam fragment_home.xml milikmu dan perbarui teksnya -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -507,10 +508,11 @@
                     <TextView
                         android:layout_width="90dp"
                         android:layout_height="wrap_content"
-                        android:text="Area"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:textColor="#444651"/>
+                        android:text="Omset"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#444651"
+                    android:gravity="end"/>
                 </LinearLayout>
 
                 <!-- Table Rows Container -->

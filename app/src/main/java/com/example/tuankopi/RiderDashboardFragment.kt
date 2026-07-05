@@ -36,10 +36,13 @@ class RiderDashboardFragment : Fragment() {
     private var namaRider = ""
     private var tanggalHariIni = ""
 
-    // Variabel penampung akumulasi pecahan keuangan laci motor harian sesuai kaidah POS akuntansi
     private var modalKasAwalLokal = 0L
     private var totalTunaiOmsetHariIni = 0f
     private var totalQrisOmsetHariIni = 0f
+
+    // Map penampung jatah awal dan total distribusi harian murni dari stok_harian
+    private val petaStokAwalKomoditas = HashMap<String, Long>()
+    private val petaNamaProdukLokal = HashMap<String, String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,7 +82,7 @@ class RiderDashboardFragment : Fragment() {
         val cleanTgl = tanggalHariIni.replace("-", "")
         val docIdStok = "${cleanTgl}_$uidRider"
 
-        // 1. LIVE MONITORING: Status, Modal Kembalian, dan Akumulasi Stok Keliling
+        // 1. LISTENER KOLEKSI 1: stok_harian (Murni memantau status jualan, modal kembalian, dan jatah kuota awal)
         val lrStok = mFirestore.collection("stok_harian").document(docIdStok)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || !isAdded) return@addSnapshotListener
@@ -93,49 +96,35 @@ class RiderDashboardFragment : Fragment() {
                 val statusJualanLapangan = snapshot.getString("status_jualan") ?: "BELUM JUALAN"
                 updateUIVisibilityJualan(statusJualanLapangan)
 
-                // Render Modal Awal Berkas Logistik Owner secara Statis
                 modalKasAwalLokal = snapshot.getLong("modal_kembalian") ?: 0L
                 val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
                 binding.tvModalKembalianDashboard.text = formatterRupiah.format(modalKasAwalLokal).replace(",00", "")
 
-                // Kalkulasi gabungan fisik isi laci motor terkini
-                updateTampilanUangLaciFisikLive()
-
-                var totalStokKumulatif = 0L
-                var totalTerjualKumulatif = 0L
-                var totalSisaKumulatif = 0L
+                petaStokAwalKomoditas.clear()
+                petaNamaProdukLokal.clear()
 
                 val detailStokMap = snapshot.get("detail_stok") as? Map<*, *>
-                val petaRankingLokal = HashMap<String, Long>()
-
                 if (detailStokMap != null) {
-                    for ((_, value) in detailStokMap) {
+                    for ((key, value) in detailStokMap) {
+                        val idProd = key.toString()
                         val dataMap = value as? Map<*, *> ?: continue
                         val isDiterima = dataMap["diterima"] as? Boolean ?: false
                         if (!isDiterima) continue
 
                         val namaProd = dataMap["nama_produk"] as? String ?: "Menu"
-                        val totalProd = dataMap["total_stok"] as? Long ?: 0L
-                        val terjualProd = dataMap["terjual"] as? Long ?: 0L
-                        val sisaProd = dataMap["sisa_stok"] as? Long ?: 0L
+                        val totalBawaanProd = dataMap["total_stok"] as? Long ?: (dataMap["stok_awal"] as? Long ?: 0L)
 
-                        totalStokKumulatif += totalProd
-                        totalTerjualKumulatif += terjualProd
-                        totalSisaKumulatif += sisaProd
-
-                        petaRankingLokal[namaProd] = terjualProd
+                        petaStokAwalKomoditas[idProd] = totalBawaanProd
+                        petaNamaProdukLokal[idProd] = namaProd
                     }
                 }
 
-                binding.tvTotalStokBawaan.text = totalStokKumulatif.toString()
-                binding.tvTotalStokTerjual.text = totalTerjualKumulatif.toString()
-                binding.tvTotalStokSisa.text = totalSisaKumulatif.toString()
-
-                susunDaftarLiveRankingProduk(petaRankingLokal, detailStokMap)
+                // Memicu perhitungan ulang kuantitas produk menggunakan basis jatah terbaru yang telah dimuat
+                pemicuKalkulasiUlangKuantitasStokLive()
             }
         listeners.add(lrStok)
 
-        // 2. LIVE MONITORING: Ringkasan Pendapatan Berjalan (Metode Pembayaran)
+        // 2. LISTENER KOLEKSI 2: transactions (Live agregasi finansial, chart metode pembayaran, dan real terjual murni SUCCESS)
         val lrTransactions = mFirestore.collection("transactions")
             .whereEqualTo("id_rider", uidRider)
             .whereEqualTo("status_pembayaran", "SUCCESS")
@@ -145,6 +134,9 @@ class RiderDashboardFragment : Fragment() {
                 var totalTunai = 0f
                 var totalQris = 0f
 
+                // Peta penampung akumulasi produk terjual riil (id_produk -> total_qty_terjual)
+                val petaKuantitasTerjualRealtime = HashMap<String, Long>()
+
                 for (doc in snapshot.documents) {
                     val tglTrans = doc.getTimestamp("waktu_transaksi")?.toDate()
                     if (tglTrans != null) {
@@ -152,49 +144,98 @@ class RiderDashboardFragment : Fragment() {
                         if (fmt != tanggalHariIni) continue
                     }
 
+                    // Ambil nominal keuangan transaksi
                     val metode = doc.getString("metode_pembayaran") ?: ""
                     val totalHarga = doc.getLong("total_harga")?.toFloat() ?: 0f
 
                     if (metode == "TUNAI") totalTunai += totalHarga
                     else if (metode == "QRIS") totalQris += totalHarga
+
+                    // Ekstraksi data produk terlaris dari array "items" di dalam transaksi sukses
+                    val arrayItems = doc.get("items") as? List<*>
+                    if (arrayItems != null) {
+                        for (itemObj in arrayItems) {
+                            val dataItemMap = itemObj as? Map<*, *> ?: continue
+                            val idProd = dataItemMap["id_produk"] as? String ?: ""
+                            val qtyBeli = dataItemMap["qty"] as? Long ?: 0L
+
+                            if (idProd.isNotEmpty()) {
+                                petaKuantitasTerjualRealtime[idProd] = (petaKuantitasTerjualRealtime[idProd] ?: 0L) + qtyBeli
+                            }
+                        }
+                    }
                 }
 
-                // Masukkan hasil data transaksi ke variabel state penampung fragment
                 totalTunaiOmsetHariIni = totalTunai
                 totalQrisOmsetHariIni = totalQris
 
                 updateTampilanUangLaciFisikLive()
                 tampilkanPieChartPendapatan(totalTunai, totalQris)
+
+                // Kalkulasi sisa lapangan dan peringkat produk menggunakan data riil transaksi SUCCESS
+                kalkulasiSaringanProdukDashboardLive(petaKuantitasTerjualRealtime)
             }
         listeners.add(lrTransactions)
+    }
+
+    private fun pemicuKalkulasiUlangKuantitasStokLive() {
+        // Fungsi pembantu jika snapshot stok_harian berubah duluan sebelum ada transaksi baru
+        kalkulasiSaringanProdukDashboardLive(HashMap())
+    }
+
+    private fun kalkulasiSaringanProdukDashboardLive(petaTerjualRealtime: HashMap<String, Long>) {
+        if (!isAdded) return
+
+        var totalStokKumulatif = 0L
+        var totalTerjualKumulatif = 0L
+        var totalSisaKumulatif = 0L
+
+        val petaRankingUntukTabel = HashMap<String, Long>()
+        val petaSisaUntukTabel = HashMap<String, Long>()
+
+        // Iterasi seluruh jatah awal produk yang ada di motor untuk disinkronkan dengan total transaksi sukses
+        for ((idProd, qtyAwalTotal) in petaStokAwalKomoditas) {
+            val namaProduk = petaNamaProdukLokal[idProd] ?: "Menu"
+            val qtyTerjualRiil = petaTerjualRealtime[idProd] ?: 0L
+            val qtySisaRiil = qtyAwalTotal - qtyTerjualRiil
+
+            totalStokKumulatif += qtyAwalTotal
+            totalTerjualKumulatif += qtyTerjualRiil
+            totalSisaKumulatif += qtySisaRiil
+
+            petaRankingUntukTabel[namaProduk] = qtyTerjualRiil
+            petaSisaUntukTabel[namaProduk] = qtySisaRiil
+        }
+
+        // Tampilkan agregasi kumulatif ke dalam widget panel ringkasan atas
+        binding.tvTotalStokBawaan.text = totalStokKumulatif.toString()
+        binding.tvTotalStokTerjual.text = totalTerjualKumulatif.toString()
+        binding.tvTotalStokSisa.text = totalSisaKumulatif.toString()
+
+        susunDaftarLiveRankingProduk(petaRankingUntukTabel, petaSisaUntukTabel)
     }
 
     private fun updateTampilanUangLaciFisikLive() {
         if (!isAdded) return
         val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
 
-        // A. Render Nominal Pendapatan Parsial Metode Pembayaran murni dari laci kasir digital
         binding.tvPembayaranTunaiLive.text = formatterRupiah.format(totalTunaiOmsetHariIni.toLong()).replace(",00", "")
         binding.tvPembayaranQrisLive.text = formatterRupiah.format(totalQrisOmsetHariIni.toLong()).replace(",00", "")
 
-        // B. Kalkulasi & Render Total Pendapatan Kotor Hari Ini (Tunai + QRIS)
         val totalPendapatanGross = totalTunaiOmsetHariIni.toLong() + totalQrisOmsetHariIni.toLong()
         binding.tvTotalPendapatanHariIni.text = formatterRupiah.format(totalPendapatanGross).replace(",00", "")
 
-        // ────────────────────────────────────────────────────────────────────────
-        // C. RUMUS LACI: Modal Kas Awal (Statis) + Pembayaran Tunai. Tanpa diganggu gugat!
-        // ────────────────────────────────────────────────────────────────────────
         val akumulasiLaciMotor = modalKasAwalLokal + totalTunaiOmsetHariIni.toLong()
         binding.tvTotalFisikLaciMotor.text = formatterRupiah.format(akumulasiLaciMotor).replace(",00", "")
     }
 
-    private fun susunDaftarLiveRankingProduk(petaRanking: HashMap<String, Long>, detailStokMap: Map<*, *>?) {
+    private fun susunDaftarLiveRankingProduk(petaRanking: HashMap<String, Long>, petaSisa: HashMap<String, Long>) {
         val ctx = context ?: return
         binding.containerRankingProdukRider.removeAllViews()
 
-        if (petaRanking.isEmpty() || detailStokMap == null) {
+        if (petaStokAwalKomoditas.isEmpty()) {
             val tvKosong = TextView(ctx).apply {
-                text = "Belum ada item produk kopi yang dikonfirmasi/diterima."
+                text = "Belum ada item produk kopi yang diterima."
                 setTextColor(Color.GRAY)
                 textSize = 12f
                 setPadding(0, 10, 0, 10)
@@ -203,21 +244,13 @@ class RiderDashboardFragment : Fragment() {
             return
         }
 
+        // Urutkan produk berdasarkan jumlah kuantitas yang paling banyak terjual hari ini
         val daftarUrut = petaRanking.toList().sortedByDescending { it.second }
 
         daftarUrut.forEachIndexed { index, pair ->
             val namaProductKey = pair.first
             val totalTerjualItem = pair.second
-
-            var sisaStokItem = 0L
-            for ((_, value) in detailStokMap) {
-                val subMap = value as? Map<*, *> ?: continue
-                val namaProdDb = subMap["nama_produk"] as? String ?: ""
-                if (namaProdDb == namaProductKey) {
-                    sisaStokItem = subMap["sisa_stok"] as? Long ?: 0L
-                    break
-                }
-            }
+            val sisaStokItem = petaSisa[namaProductKey] ?: 0L
 
             val baris = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -300,14 +333,14 @@ class RiderDashboardFragment : Fragment() {
                     val statusStokLogistik = snapshot.getString("status_stok") ?: "CLOSED"
 
                     if (statusBaruJualan == "SEDANG JUALAN" && statusStokLogistik != "AKTIF") {
-                        Toast.makeText(context, "Gagal! Anda wajib mengonfirmasi terima jatah cup kopi di menu 'Konfirmasi Stok' terlebih dahulu!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Gagal! Konfirmasi jatah cup di menu 'Konfirmasi Stok' dulu!", Toast.LENGTH_LONG).show()
                         return@addOnSuccessListener
                     }
 
                     mFirestore.collection("stok_harian").document(docId)
                         .update("status_jualan", statusBaruJualan)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "Sukses! Status jualan: $statusBaruJualan", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Sukses merubah status jualan!", Toast.LENGTH_SHORT).show()
                         }
                 }
             }
@@ -345,7 +378,6 @@ class RiderDashboardFragment : Fragment() {
         val dataSet = PieDataSet(entriPie, "").apply {
             colors = arrayListOf(Color.parseColor("#4682B4"), Color.parseColor("#B22222"))
             sliceSpace = 2.5f
-
             xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
             yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
             valueLinePart1OffsetPercentage = 75f
@@ -358,7 +390,6 @@ class RiderDashboardFragment : Fragment() {
             setValueTextColor(Color.parseColor("#191C1E"))
             setValueTextSize(12f)
             setValueTypeface(Typeface.DEFAULT_BOLD)
-
             setValueFormatter(object : com.github.mikephil.charting.formatter.ValueFormatter() {
                 override fun getPieLabel(value: Float, pieEntry: PieEntry?): String {
                     return pieEntry?.label ?: ""
@@ -368,15 +399,12 @@ class RiderDashboardFragment : Fragment() {
 
         binding.pieChartRiderPendapatan.apply {
             data = dataPieFinal
-
             isDrawHoleEnabled = false
             description.isEnabled = false
             setTouchEnabled(true)
-
             setEntryLabelColor(Color.TRANSPARENT)
             setEntryLabelTextSize(0f)
             setUsePercentValues(false)
-
             setExtraOffsets(50f, 16f, 50f, 12f)
 
             legend.apply {
@@ -384,16 +412,12 @@ class RiderDashboardFragment : Fragment() {
                 textColor = Color.parseColor("#191C1E")
                 textSize = 11f
                 typeface = Typeface.DEFAULT_BOLD
-
                 orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.VERTICAL
                 verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM
                 horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER
                 setDrawInside(false)
-
                 yEntrySpace = 6f
             }
-
-            marker = PieChartMarkerView(context, tunai, qris)
 
             animateY(650, com.github.mikephil.charting.animation.Easing.EaseOutQuad)
             invalidate()
