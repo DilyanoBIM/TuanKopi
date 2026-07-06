@@ -2,19 +2,18 @@ package com.example.tuankopi.distribusi
 
 import android.os.Bundle
 import android.text.Editable
-import android.text.InputType
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog // ◄ PASTIKAN BARIS INI ADA YA BIM!
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.StokGudang
-import com.example.tuankopi.databinding.ActivityPilihProdukGudangBinding
+import com.example.tuankopi.databinding.ActivityInputSuplaiRiderBinding
 import com.example.tuankopi.databinding.ItemPilihProdukGudangBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -23,7 +22,7 @@ import java.util.Locale
 
 class InputSuplaiRiderActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPilihProdukGudangBinding
+    private lateinit var binding: ActivityInputSuplaiRiderBinding
     private lateinit var mFirestore: FirebaseFirestore
     private var listStokGudangPusat = ArrayList<StokGudang>()
     private lateinit var mAdapter: SuplaiAdapter
@@ -33,19 +32,13 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
     private var riderNama = ""
     private var cleanedTgl = ""
 
-    // PETA AMUNISI: id_produk -> jumlah_distribusi (Khusus modal cash awal, kita simpan dengan key khusus "KEY_MODAL_CASH")
     private val kuotaAlokasiBaru = HashMap<String, Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPilihProdukGudangBinding.inflate(layoutInflater)
+        // Gunakan binding khusus untuk Input Suplai Rider
+        binding = ActivityInputSuplaiRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
-        setSupportActionBar(binding.customToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Bagi Jatah: ${intent.getStringExtra("RIDER_NAMA") ?: ""}"
-        mFirestore = FirebaseFirestore.getInstance()
 
         targetTanggal = intent.getStringExtra("TARGET_TANGGAL") ?: ""
         riderUid = intent.getStringExtra("RIDER_UID") ?: ""
@@ -53,9 +46,20 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
 
         cleanedTgl = targetTanggal.replace("-", "")
 
+        setSupportActionBar(binding.customToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Bagi Jatah: $riderNama"
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
+
         binding.tvHeaderPilih.text = "Ambil Produk & Atur Modal Awal"
         binding.btnSimpanBatchGudang.text = "KONFIRMASI DISTRIBUSI MOTOR"
+
+        mFirestore = FirebaseFirestore.getInstance()
 
         setupRecyclerView()
         muatStokTersediaGudangPusatMap()
@@ -81,21 +85,18 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
                 if (docGudang != null && docGudang.exists()) {
                     listStokGudangPusat.clear()
 
-                    // 1. INJEKSI OBYEK DUMMY: Masukkan baris input Modal Kembalian di posisi paling atas list
                     listStokGudangPusat.add(
                         StokGudang(
                             id_produk = "KEY_MODAL_CASH",
                             nama_produk = "💰 MODAL CASH AWAL KEMBALIAN",
                             harga_jual = 0L,
-                            sisa_gudang = 999999L, // Set dummy sisa agar tidak terkena validasi habis
+                            sisa_gudang = 999999L,
                             stok_masuk_awal = 1L
                         )
                     )
 
-                    // Set default saran modal awal 50 ribu langsung ke dalam map penampung
                     kuotaAlokasiBaru["KEY_MODAL_CASH"] = 50000L
 
-                    // 2. MASUKKAN DAFTAR PRODUK SEPERTI BIASA
                     val rawMapDetail = docGudang.get("detail_gudang") as? Map<*, *>
                     val listProdukLokal = ArrayList<StokGudang>()
 
@@ -127,7 +128,6 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
                         }
                     }
 
-                    // Urutkan nama produk kopi saja, lalu gabungkan di bawah baris modal cash
                     listProdukLokal.sortBy { it.nama_produk }
                     listStokGudangPusat.addAll(listProdukLokal)
 
@@ -139,10 +139,8 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
     }
 
     private fun eksekusiTransaksiSuplaiHilir() {
-        // 1. Ekstraksi nominal modal dari EditText map dummy, default 0 jika kosong
         val nominalModalTerinput = kuotaAlokasiBaru["KEY_MODAL_CASH"] ?: 0L
 
-        // 2. Filter map untuk mendapatkan kuota komoditas kopi murni saja
         val kuotaKopiMurni = HashMap(kuotaAlokasiBaru)
         kuotaKopiMurni.remove("KEY_MODAL_CASH")
 
@@ -151,9 +149,7 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
             return
         }
 
-        // 3. SUSUN STRING RINGKASAN SECARA DINAMIS UNTUK POP-UP CHECKING
         val sbRingkasan = StringBuilder()
-
         val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
         val textModalFormat = formatterRupiah.format(nominalModalTerinput).replace(",00", "")
 
@@ -164,34 +160,28 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
 
         var nomorUrut = 1
         for ((idProd, qtyBawa) in kuotaKopiMurni) {
-            // Cari nama produk asli dari list master yang sedang tampil di RecyclerView
             val namaProdukAsli = listStokGudangPusat.find { it.id_produk == idProd }?.nama_produk ?: "Menu Kopi"
             sbRingkasan.append("${nomorUrut++}. $namaProdukAsli -> $qtyBawa Cup\n")
         }
         sbRingkasan.append("\nApakah seluruh data logistik di atas sudah sesuai?")
 
-        // 4. TAMPILKAN POP-UP DIALOG KONFIRMASI (CHECKING FINAL)
         val context = this
         AlertDialog.Builder(context).apply {
             setTitle("Konfirmasi Distribusi Motor")
             setMessage(sbRingkasan.toString())
-            setCancelable(false) // Rider/Owner wajib pilih tombol aksi, tidak bisa klik luar
+            setCancelable(false)
             setPositiveButton("Ya, Kirim Jatah") { dialog, _ ->
                 dialog.dismiss()
-                // Jalankan proses transaksional Firestore jika disetujui
                 eksekusiSimpanKeFirestoreTransaksional(nominalModalTerinput, kuotaKopiMurni)
             }
             setNegativeButton("Cek Kembali") { dialog, _ ->
-                dialog.dismiss() // Tutup pop-up dan biarkan Owner memperbaiki inputan di list
+                dialog.dismiss()
             }
             create()
             show()
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // PEMISAHAN FUNGSI: Eksekusi Kirim Data Murni Setelah Lolos Pop-up Checking
-    // ────────────────────────────────────────────────────────────────────────
     private fun eksekusiSimpanKeFirestoreTransaksional(nominalModalTerinput: Long, kuotaKopiMurni: HashMap<String, Long>) {
         val riderDocId = "${cleanedTgl}_$riderUid"
         val refGudangTunggal = mFirestore.collection("stok_gudang").document(cleanedTgl)
@@ -333,7 +323,6 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
 
             vh.b.etJumlahMasukLokal.removeTextChangedListener(vh.textWatcher)
 
-            // Modifikasi Tampilan Sesuai dengan jenis Obyek (Modal Dummy vs Produk Kopi)
             if (item.id_produk == "KEY_MODAL_CASH") {
                 vh.b.tvNamaProdukBawaan.text = item.nama_produk
                 vh.b.tvHargaProdukBawaan.text = "Isi nominal Rupiah cash awal"

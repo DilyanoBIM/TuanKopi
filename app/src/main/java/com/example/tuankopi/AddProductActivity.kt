@@ -3,6 +3,8 @@ package com.example.tuankopi
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.tuankopi.databinding.ActivityAddProductBinding
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -16,10 +18,17 @@ class AddProductActivity : AppCompatActivity() {
         binding = ActivityAddProductBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Tambah Produk"
+
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
 
@@ -43,12 +52,11 @@ class AddProductActivity : AppCompatActivity() {
             "id_produk" to id,
             "nama_produk" to nama,
             "harga_jual" to harga,
-            "foto_url" to "", // Kosongkan sementara sebelum integrasi cloud storage
+            "foto_url" to "",
             "status_accessible" to true,
             "status_tersedia" to true
         )
 
-        // Simpan menggunakan ID buatan manual sebagai Document ID agar rapi
         mFirestore.collection("products").document(id).set(dataProduk)
             .addOnSuccessListener {
                 Toast.makeText(this, "Produk $nama Berhasil Ditambahkan!", Toast.LENGTH_SHORT).show()

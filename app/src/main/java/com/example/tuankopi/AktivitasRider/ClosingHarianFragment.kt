@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.example.tuankopi.RiderDashboardActivity
 import com.example.tuankopi.databinding.FragmentClosingHarianBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -29,13 +30,22 @@ class ClosingHarianFragment : Fragment() {
 
     private var uidRider = ""
     private var namaRider = ""
-    private var tanggalHariIni = ""
+    private var tanggalTarget = ""
     private var docIdStokTarget = ""
     private var docIdClosing = ""
 
     private var totalTunaiSistem = 0L
     private var totalQrisSistem = 0L
     private var modalAwal = 0L
+
+    companion object {
+        fun newInstance(tanggal: String): ClosingHarianFragment {
+            val fragment = ClosingHarianFragment()
+            val args = Bundle().apply { putString("TANGGAL", tanggal) }
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,10 +56,18 @@ class ClosingHarianFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
 
         uidRider = mAuth.currentUser?.uid ?: ""
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        tanggalHariIni = sdf.format(Calendar.getInstance().time)
-        docIdStokTarget = "${tanggalHariIni.replace("-", "")}_$uidRider"
+        tanggalTarget = arguments?.getString("TANGGAL") ?: ""
+
+        val cleanTgl = tanggalTarget.replace("-", "")
+        docIdStokTarget = "${cleanTgl}_$uidRider"
         docIdClosing = docIdStokTarget
+
+        binding.tvInfoTanggalClosing.text = "Closing: $tanggalTarget"
+
+        binding.btnBackDetail.setOnClickListener {
+            val tglFragment = AktivitasPilihTanggalFragment.newInstance("CLOSING")
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(tglFragment)
+        }
 
         pantauStatusLaporanClosing()
         ambilDataKalkulasiSistem()
@@ -122,21 +140,25 @@ class ClosingHarianFragment : Fragment() {
                     if (statusStok == "CLOSED") {
                         kunciLayarSudahClosing()
                     }
-
                     perbaruiTampilanUI()
                 }
             }
 
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-        }
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dateTarget = sdf.parse(tanggalTarget) ?: return
+
+        val cal = Calendar.getInstance().apply { time = dateTarget }
+        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0)
+        val startOfDay = cal.time
+
+        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
+        val endOfDay = cal.time
 
         mFirestore.collection("transactions")
             .whereEqualTo("id_rider", uidRider)
             .whereEqualTo("status_pembayaran", "SUCCESS")
-            .whereGreaterThanOrEqualTo("waktu_transaksi", cal.time)
+            .whereGreaterThanOrEqualTo("waktu_transaksi", startOfDay)
+            .whereLessThanOrEqualTo("waktu_transaksi", endOfDay)
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot == null || !isAdded) return@addSnapshotListener
 
@@ -210,7 +232,7 @@ class ClosingHarianFragment : Fragment() {
 
         val dataClosing = hashMapOf(
             "id_closing" to docIdClosing,
-            "tanggal" to tanggalHariIni,
+            "tanggal" to tanggalTarget,
             "id_rider" to uidRider,
             "nama_rider" to namaRider,
             "waktu_closing_rider" to FieldValue.serverTimestamp(),
@@ -224,11 +246,9 @@ class ClosingHarianFragment : Fragment() {
         )
 
         mFirestore.runTransaction { transaction ->
-            // 1. LAKUKAN SEMUA PROSES READ TERLEBIH DAHULU (Sesuai Aturan Firestore)
             val refStok = mFirestore.collection("stok_harian").document(docIdStokTarget)
             val snapStok = transaction.get(refStok)
 
-            // 2. SETELAH READ SELESAI, LAKUKAN SEMUA PROSES WRITE/UPDATE/SET
             val refClosing = mFirestore.collection("closing_laporan").document(docIdClosing)
             transaction.set(refClosing, dataClosing)
 

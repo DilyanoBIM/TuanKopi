@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.User
 import com.example.tuankopi.databinding.ActivityPilihRiderBinding
-import com.example.tuankopi.databinding.ItemTanggalGudangBinding // Ganti dengan item list text simple jika ada
+import com.example.tuankopi.databinding.ItemTanggalGudangBinding
 import com.google.firebase.firestore.FirebaseFirestore
 
 class PilihRiderActivity : AppCompatActivity() {
@@ -25,14 +27,19 @@ class PilihRiderActivity : AppCompatActivity() {
         binding = ActivityPilihRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        tanggalTarget = intent.getStringExtra("TARGET_TANGGAL") ?: ""
+
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Rider - ${intent.getStringExtra("TARGET_TANGGAL") ?: ""}"
-        mFirestore = FirebaseFirestore.getInstance()
-
-        tanggalTarget = intent.getStringExtra("TARGET_TANGGAL") ?: ""
         supportActionBar?.title = "Rider - $tanggalTarget"
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
+
+        mFirestore = FirebaseFirestore.getInstance()
 
         setupRecyclerView()
         muatRiderAktif()
@@ -51,7 +58,6 @@ class PilihRiderActivity : AppCompatActivity() {
     }
 
     private fun muatRiderAktif() {
-        // Query Validasi Kelayakan Akun Sidang Skripsi
         mFirestore.collection("users")
             .whereEqualTo("role", "rider")
             .whereEqualTo("status_akun", true)

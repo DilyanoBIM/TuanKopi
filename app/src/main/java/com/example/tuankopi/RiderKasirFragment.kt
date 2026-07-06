@@ -335,10 +335,9 @@ class RiderKasirFragment : Fragment() {
                             }
 
                             if (qrisUrlRaw.isNotEmpty()) {
-                                val urlSimulatorOtomatis = "https://simulator.sandbox.midtrans.com/v2/qris/index?url=$qrisUrlRaw"
-
                                 binding.root.postDelayed({
-                                    val dialog = tampilkanDialogQRISTester(qrisUrlRaw, urlSimulatorOtomatis)
+                                    // Memanggil fungsi tanpa parameter yang tidak terpakai
+                                    val dialog = tampilkanDialogQRISTester(qrisUrlRaw)
 
                                     if (dialog != null) {
                                         pasangRealtimeListenerTransaksi(orderId, dialog)
@@ -360,7 +359,8 @@ class RiderKasirFragment : Fragment() {
         })
     }
 
-    private fun tampilkanDialogQRISTester(urlGambarQris: String, urlSimulatorLengkap: String): androidx.appcompat.app.AlertDialog? {
+    // Menghapus parameter urlSimulatorLengkap yang tidak digunakan
+    private fun tampilkanDialogQRISTester(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
         val contextLayout = context ?: return null
 
         // Membuat container utama secara dinamis menggunakan LinearLayout

@@ -11,6 +11,8 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.databinding.ActivityDetailStokGudangBinding
@@ -35,10 +37,15 @@ class DetailStokGudangActivity : AppCompatActivity() {
         binding = ActivityDetailStokGudangBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Detail Logistik Gudang"
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
         tanggalLihat = intent.getStringExtra("LIHAT_TANGGAL") ?: ""
@@ -81,12 +88,11 @@ class DetailStokGudangActivity : AppCompatActivity() {
                             for ((_, value) in rawMapDetail) {
                                 val dataKopi = value as? Map<*, *> ?: continue
 
-                                // ... kode perulangan map di dalam Thread ...
                                 val idProd = dataKopi["id_produk"] as? String ?: ""
                                 val namaProd = dataKopi["nama_produk"] as? String ?: "Menu Kopi"
                                 val harga = dataKopi["harga_jual"] as? Long ?: 0L
                                 val awal = dataKopi["stok_masuk_awal"] as? Long ?: 0L
-                                val tambahan = dataKopi["stok_tambahan"] as? Long ?: 0L // ◄ Ambil data tambahan
+                                val tambahan = dataKopi["stok_tambahan"] as? Long ?: 0L
                                 val alokasi = dataKopi["stok_dialokasikan"] as? Long ?: 0L
                                 val sisa = dataKopi["sisa_gudang"] as? Long ?: 0L
                                 val total = dataKopi["stok_total"] as? Long ?: (awal + tambahan)
@@ -99,7 +105,7 @@ class DetailStokGudangActivity : AppCompatActivity() {
                                             id_produk = idProd,
                                             nama_produk = namaProd,
                                             stok_masuk_awal = awal,
-                                            stok_tambahan = tambahan, // ◄ Masukkan ke object
+                                            stok_tambahan = tambahan,
                                             stok_dialokasikan = alokasi,
                                             sisa_gudang = sisa,
                                             harga_jual = harga,
@@ -107,7 +113,6 @@ class DetailStokGudangActivity : AppCompatActivity() {
                                         )
                                     )
                                 }
-                                // ... kode runOnUiThread ...
                             }
                         }
 
@@ -142,15 +147,12 @@ class DetailStokGudangActivity : AppCompatActivity() {
         container.addView(input)
         dialogBuilder.setView(container)
 
-        // ... kode inisialisasi dialogbuilder dan input editText ...
         dialogBuilder.setPositiveButton("Simpan Perubahan") { dialog, _ ->
             val teksJumlah = input.text.toString().trim()
             if (teksJumlah.isEmpty()) return@setPositiveButton
 
-            val stokAwalBaru = teksJumlah.toLong() // Nilai edit untuk stok_masuk_awal
-            val stokTotalBaru = stokAwalBaru + item.stok_tambahan // Total baru = awal baru + tambahan lama
-
-            // Sisa gudang disesuaikan: total keseluruhan yang baru dikurangi jatah yang sudah dibawa Rider
+            val stokAwalBaru = teksJumlah.toLong()
+            val stokTotalBaru = stokAwalBaru + item.stok_tambahan
             val sisaGudangBaru = stokTotalBaru - item.stok_dialokasikan
 
             if (sisaGudangBaru < 0) {
@@ -212,7 +214,7 @@ class DetailStokGudangActivity : AppCompatActivity() {
             val item = data[pos]
             vh.b.tvDetailNamaKopi.text = item.nama_produk
             vh.b.tvMasukAwal.text = "Awal: ${item.stok_masuk_awal} Cup"
-            vh.b.tvTambahanStok.text = "Tambahan: ${item.stok_tambahan} Cup" // ◄ Set data komponen baru
+            vh.b.tvTambahanStok.text = "Tambahan: ${item.stok_tambahan} Cup"
             vh.b.tvStokTotalKumulatif.text = "Total: ${item.stok_total} Cup"
             vh.b.tvDialokasikan.text = "Diambil: ${item.stok_dialokasikan} Cup"
             vh.b.tvSisaGudang.text = "Sisa: ${item.sisa_gudang} Cup"

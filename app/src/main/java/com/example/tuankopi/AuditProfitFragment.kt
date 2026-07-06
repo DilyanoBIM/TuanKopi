@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentAuditProfitBinding
+// Tambahkan baris import ini
+import com.example.tuankopi.ownervalidasi.ValidasiListFragment
 
 class AuditProfitFragment : Fragment() {
     private var _binding: FragmentAuditProfitBinding? = null
@@ -20,11 +22,17 @@ class AuditProfitFragment : Fragment() {
         }
 
         binding.cardValidasiSetoran.setOnClickListener {
-            Toast.makeText(requireContext(), "Membuka Audit Setoran Keuangan...", Toast.LENGTH_SHORT).show()
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, ValidasiListFragment()) // Sesuaikan R.id.fragment_container dengan ID FrameLayout utama Anda
+                .addToBackStack(null)
+                .commit()
         }
 
         return binding.root
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

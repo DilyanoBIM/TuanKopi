@@ -2,6 +2,8 @@ package com.example.tuankopi
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.tuankopi.databinding.ActivityDetailProductBinding
 import java.text.NumberFormat
 import java.util.Locale
@@ -15,10 +17,17 @@ class DetailProductActivity : AppCompatActivity() {
         binding = ActivityDetailProductBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Informasi Menu"
+
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         val id = intent.getStringExtra("PROD_ID") ?: "-"
         val nama = intent.getStringExtra("PROD_NAMA") ?: "-"

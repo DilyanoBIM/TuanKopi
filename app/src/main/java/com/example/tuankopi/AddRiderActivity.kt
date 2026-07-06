@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.tuankopi.databinding.ActivityAddRiderBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -21,11 +23,17 @@ class AddRiderActivity : AppCompatActivity() {
         binding = ActivityAddRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Mengaktifkan Tombol Panah Kembali di Toolbar Atas Android
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Tambah Rider Baru"
+
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
@@ -46,8 +54,7 @@ class AddRiderActivity : AppCompatActivity() {
     }
 
     private fun tambahRiderKeSistem(nama: String, noHp: String, email: String, password: String) {
-        binding.progressBarAdd.visibility = View.VISIBLE
-        binding.btnSimpanRider.visibility = View.GONE
+        setLoadingState(true)
 
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener { authResult ->
@@ -87,7 +94,7 @@ class AddRiderActivity : AppCompatActivity() {
 
     private fun setLoadingState(isLoading: Boolean) {
         if (isLoading) {
-            binding.progressBarAdd.visibility = View.VISIBLE //  BENAR (Ganti ke View.VISIBLE)
+            binding.progressBarAdd.visibility = View.VISIBLE
             binding.btnSimpanRider.visibility = View.GONE
         } else {
             binding.progressBarAdd.visibility = View.GONE
@@ -95,7 +102,7 @@ class AddRiderActivity : AppCompatActivity() {
         }
     }
 
-    // 2. Fungsi Logika: Menangani penekanan tombol kembali di toolbar atas
+    // 3. Fungsi Logika: Menangani penekanan tombol kembali di toolbar atas
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed() // Kembali ke halaman daftar rider
         return true

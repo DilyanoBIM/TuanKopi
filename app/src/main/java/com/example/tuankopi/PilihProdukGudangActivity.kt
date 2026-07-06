@@ -7,14 +7,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.databinding.ActivityPilihProdukGudangBinding
 import com.example.tuankopi.databinding.ItemPilihProdukGudangBinding
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 
 class PilihProdukGudangActivity : AppCompatActivity() {
 
@@ -31,10 +31,15 @@ class PilihProdukGudangActivity : AppCompatActivity() {
         binding = ActivityPilihProdukGudangBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Pilih Menu Kopi"
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
         tanggalTarget = intent.getStringExtra("TARGET_TANGGAL") ?: ""
@@ -90,7 +95,6 @@ class PilihProdukGudangActivity : AppCompatActivity() {
             val rawDetailGudang = snapshot.get("detail_gudang") as? Map<*, *>
             val detailGudangTerbarui = HashMap<String, Any>()
 
-            // Tetap simpan produk lain agar tidak terhapus dari map
             if (rawDetailGudang != null) {
                 for ((k, v) in rawDetailGudang) {
                     detailGudangTerbarui[k.toString()] = v!!
@@ -109,22 +113,18 @@ class PilihProdukGudangActivity : AppCompatActivity() {
                 val sisaBaru: Long
 
                 if (dataKopiLama == null || (dataKopiLama["stok_total"] as? Long ?: 0L) == 0L) {
-                    // KASUS 1: Input Pertama Hari Ini (Subuh)
                     awalBaru = qtyInput
                     tambahanBaru = 0L
                     totalBaru = qtyInput
-                    sisaBaru = qtyInput // Sisa gudang awal sama dengan stok masuk pertama
+                    sisaBaru = qtyInput
                 } else {
-                    // KASUS 2: Klik Tambah Stok Lagi (Siang/Sore)
                     val lamaAwal = dataKopiLama["stok_masuk_awal"] as? Long ?: 0L
                     val lamaTambahan = dataKopiLama["stok_tambahan"] as? Long ?: 0L
                     val lamaSisa = dataKopiLama["sisa_gudang"] as? Long ?: 0L
 
-                    awalBaru = lamaAwal // Stok awal subuh dikunci, tidak berubah
-                    tambahanBaru = lamaTambahan + qtyInput // Akumulasi stok tambahan
-                    totalBaru = awalBaru + tambahanBaru // Total akumulatif keseluruhan
-
-                    // RUMUS BARU: Sisa gudang saat ini langsung ditambah dengan pasokan baru
+                    awalBaru = lamaAwal
+                    tambahanBaru = lamaTambahan + qtyInput
+                    totalBaru = awalBaru + tambahanBaru
                     sisaBaru = lamaSisa + qtyInput
                 }
 
@@ -174,7 +174,6 @@ class PilihProdukGudangActivity : AppCompatActivity() {
             val item = data[pos]
             vh.b.tvNamaProdukBawaan.text = item.nama_produk
 
-            // Ubah baris format rupiah di PilihAdapter menjadi seperti ini:
             val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("in", "ID"))
             vh.b.tvHargaProdukBawaan.text = formatter.format(item.harga_jual).replace(",00", "")
 

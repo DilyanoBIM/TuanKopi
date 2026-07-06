@@ -31,6 +31,11 @@ class RiderKonfirmasiStokFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
+        // Fungsi Tombol Kembali menuju Beranda Rider
+        binding.btnBack.setOnClickListener {
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderDashboardFragment())
+        }
+
         setupRecyclerView()
         muatSemuaTanggalAlokasiRider()
 
@@ -38,7 +43,6 @@ class RiderKonfirmasiStokFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        // Menggunakan item layout yang sudah kamu punya (ItemTanggalGudangBinding)
         mAdapter = TanggalRiderAdapter(listTanggal) { tglTerpilih ->
             val fragmentDetail = RiderDetailKonfirmasiFragment().apply {
                 arguments = Bundle().apply {
@@ -55,7 +59,6 @@ class RiderKonfirmasiStokFragment : Fragment() {
         val uidRider = mAuth.currentUser?.uid ?: ""
         if (uidRider.isEmpty()) return
 
-        // Ambil data alokasi stok dari Owner yang ditujukan murni untuk Rider ini
         mFirestore.collection("stok_harian")
             .whereEqualTo("id_rider", uidRider)
             .get()
@@ -66,7 +69,6 @@ class RiderKonfirmasiStokFragment : Fragment() {
                         val tgl = doc.getString("tanggal")
                         if (tgl != null) listTanggal.add(tgl)
                     }
-                    // Urutkan tanggal terbaru berada di posisi paling atas layar HP
                     listTanggal.sortDescending()
                     mAdapter.notifyDataSetChanged()
 
@@ -82,7 +84,6 @@ class RiderKonfirmasiStokFragment : Fragment() {
         _binding = null
     }
 
-    // Adapter internal sederhana memanfaatkan Item XML yang sudah ada di proyek
     inner class TanggalRiderAdapter(
         private val data: List<String>,
         val click: (String) -> Unit

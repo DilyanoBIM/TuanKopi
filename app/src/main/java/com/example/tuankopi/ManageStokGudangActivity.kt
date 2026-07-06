@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.databinding.ActivityManageStokGudangBinding
@@ -28,16 +30,22 @@ class ManageStokGudangActivity : AppCompatActivity() {
         binding = ActivityManageStokGudangBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
+        // 1. Setup Toolbar Custom
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Stok Gudang Harian"
+
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
 
         setupRecyclerView()
 
-        // Klik FAB memunculkan DatePicker untuk menentukan tanggal logistik baru
         binding.fabAddStokGudang.setOnClickListener {
             val c = Calendar.getInstance()
             DatePickerDialog(this, { _, year, month, dayOfMonth ->
@@ -54,7 +62,6 @@ class ManageStokGudangActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        // PERBAIKAN LOGIKA: Ketika tanggal di-klik, panggil dialog pilihan aksi (Lihat / Hapus)
         mAdapter = TanggalAdapter(listTanggal) { tgl ->
             tampilkanDialogPilihanAksi(tgl)
         }
@@ -73,15 +80,12 @@ class ManageStokGudangActivity : AppCompatActivity() {
                         if (tgl != null) setTanggal.add(tgl)
                     }
                     listTanggal.clear()
-                    listTanggal.addAll(setTanggal.sortedDescending()) // Urutkan tanggal terbaru di atas
+                    listTanggal.addAll(setTanggal.sortedDescending())
                     mAdapter.notifyDataSetChanged()
                 }
             }
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // FITUR BARU: Dialog Pilihan Aksi (Lihat Detail vs Hapus Total)
-    // ────────────────────────────────────────────────────────────────────────
     private fun tampilkanDialogPilihanAksi(tanggalTerpilih: String) {
         val opsi = arrayOf("Lihat Detail Logistik", "Hapus Total Riwayat")
 
@@ -90,13 +94,11 @@ class ManageStokGudangActivity : AppCompatActivity() {
             .setItems(opsi) { dialog, which ->
                 when (opsi[which]) {
                     "Lihat Detail Logistik" -> {
-                        // Alirkan intent menuju halaman rincian monitor gudang
                         val intent = Intent(this, DetailStokGudangActivity::class.java)
                         intent.putExtra("LIHAT_TANGGAL", tanggalTerpilih)
                         startActivity(intent)
                     }
                     "Hapus Total Riwayat" -> {
-                        // Konfirmasi ulang demi keamanan data inventory
                         tampilkanDialogKonfirmasiHapus(tanggalTerpilih)
                     }
                 }
@@ -106,9 +108,6 @@ class ManageStokGudangActivity : AppCompatActivity() {
             .create().show()
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // FITUR BARU: Dialog Konfirmasi Penghapusan Permanen Dokumen dari Firestore
-    // ────────────────────────────────────────────────────────────────────────
     private fun tampilkanDialogKonfirmasiHapus(tanggalTarget: String) {
         AlertDialog.Builder(this)
             .setTitle("Konfirmasi Hapus Total")
@@ -116,7 +115,6 @@ class ManageStokGudangActivity : AppCompatActivity() {
             .setPositiveButton("Ya, Hapus Permanen") { dialog, _ ->
                 val cleanedTanggalId = tanggalTarget.replace("-", "")
 
-                // Eksekusi penghapusan dokumen tunggal berbasis Document ID YYYYMMDD
                 mFirestore.collection("stok_gudang").document(cleanedTanggalId)
                     .delete()
                     .addOnSuccessListener {

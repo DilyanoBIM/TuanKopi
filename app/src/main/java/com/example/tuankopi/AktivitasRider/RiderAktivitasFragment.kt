@@ -5,10 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.tuankopi.RiderDashboardActivity
 import com.example.tuankopi.databinding.FragmentRiderAktivitasBinding
-import com.google.android.material.tabs.TabLayoutMediator
 
 class RiderAktivitasFragment : Fragment() {
+
     private var _binding: FragmentRiderAktivitasBinding? = null
     private val binding get() = _binding!!
 
@@ -18,16 +19,17 @@ class RiderAktivitasFragment : Fragment() {
     ): View {
         _binding = FragmentRiderAktivitasBinding.inflate(inflater, container, false)
 
-        val adapter = AktivitasPagerAdapter(this)
-        binding.viewPagerAktivitas.adapter = adapter
+        binding.cardRiwayatTransaksi.setOnClickListener {
+            // Arahkan ke list tanggal dengan flag "RIWAYAT"
+            val fragmentTgl = AktivitasPilihTanggalFragment.newInstance("RIWAYAT")
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentTgl)
+        }
 
-        TabLayoutMediator(binding.tabLayoutAktivitas, binding.viewPagerAktivitas) { tab, position ->
-            tab.text = when (position) {
-                0 -> "Riwayat Transaksi"
-                1 -> "Closing Harian"
-                else -> ""
-            }
-        }.attach()
+        binding.cardClosingHarian.setOnClickListener {
+            // Arahkan ke list tanggal dengan flag "CLOSING"
+            val fragmentTgl = AktivitasPilihTanggalFragment.newInstance("CLOSING")
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentTgl)
+        }
 
         return binding.root
     }

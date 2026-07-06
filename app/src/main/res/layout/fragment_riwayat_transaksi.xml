@@ -3,7 +3,37 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#F8F9FB">
+
+    <!-- Baris Header Tombol Back -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <ImageView
+            android:id="@+id/btnBackDetail"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="?attr/homeAsUpIndicator"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_marginEnd="8dp"
+            app:tint="#191C1E"/>
+
+        <TextView
+            android:id="@+id/tvInfoTanggal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaksi Tanggal: --"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#191C1E"/>
+    </LinearLayout>
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -11,6 +41,7 @@
         android:padding="8dp"
         android:scrollbars="none">
 
+        <!-- Penambahan Filter Lengkap (Failed dan Pending) -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/cgFilterTransaksi"
             android:layout_width="wrap_content"
@@ -46,6 +77,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Success" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFailed"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Failed" />
+
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 

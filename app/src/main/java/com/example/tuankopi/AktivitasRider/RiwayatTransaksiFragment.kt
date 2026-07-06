@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.tuankopi.RiderDashboardActivity
 import com.example.tuankopi.databinding.FragmentRiwayatTransaksiBinding
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
@@ -19,7 +20,6 @@ import com.google.firebase.firestore.Query
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 class RiwayatTransaksiFragment : Fragment() {
@@ -33,8 +33,17 @@ class RiwayatTransaksiFragment : Fragment() {
 
     private var rawTransactionList = ArrayList<Map<String, Any>>()
     private var filteredList = ArrayList<Map<String, Any>>()
-    private var tanggalHariIni = ""
+    private var tanggalTarget = ""
     private var currentFilter = "Semua"
+
+    companion object {
+        fun newInstance(tanggal: String): RiwayatTransaksiFragment {
+            val fragment = RiwayatTransaksiFragment()
+            val args = Bundle().apply { putString("TANGGAL", tanggal) }
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,12 +53,17 @@ class RiwayatTransaksiFragment : Fragment() {
         mFirestore = FirebaseFirestore.getInstance()
         mAuth = FirebaseAuth.getInstance()
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        tanggalHariIni = sdf.format(Calendar.getInstance().time)
+        tanggalTarget = arguments?.getString("TANGGAL") ?: ""
+        binding.tvInfoTanggal.text = "Transaksi Tanggal: $tanggalTarget"
+
+        binding.btnBackDetail.setOnClickListener {
+            val tglFragment = AktivitasPilihTanggalFragment.newInstance("RIWAYAT")
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(tglFragment)
+        }
 
         setupRecyclerView()
         setupFilters()
-        fetchRiwayatHariIni()
+        fetchRiwayatBerdasarkanTanggal()
 
         return binding.root
     }
@@ -73,18 +87,29 @@ class RiwayatTransaksiFragment : Fragment() {
         }
     }
 
-    private fun fetchRiwayatHariIni() {
+    private fun fetchRiwayatBerdasarkanTanggal() {
         val uid = mAuth.currentUser?.uid ?: return
 
-        // Buat batasan waktu untuk hari ini
-        val cal = Calendar.getInstance()
+        if (tanggalTarget.isEmpty()) return
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dateTarget = sdf.parse(tanggalTarget) ?: return
+
+        // Ambil batas waktu tepat dari 00:00:00 sampai 23:59:59 pada hari tersebut
+        val cal = Calendar.getInstance().apply { time = dateTarget }
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
         val startOfDay = cal.time
+
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        val endOfDay = cal.time
 
         mFirestore.collection("transactions")
             .whereEqualTo("id_rider", uid)
             .whereGreaterThanOrEqualTo("waktu_transaksi", startOfDay)
+            .whereLessThanOrEqualTo("waktu_transaksi", endOfDay)
             .orderBy("waktu_transaksi", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || !isAdded) return@addSnapshotListener
@@ -128,16 +153,14 @@ class RiwayatTransaksiFragment : Fragment() {
         val status = data["status_pembayaran"].toString()
         val total = data["total_harga"] as? Long ?: 0L
 
-        // Perbaikan di baris ini: tambahkan eksplit tipe <Any?> pada emptyList
         val items = data["items"] as? List<*> ?: emptyList<Any?>()
-
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(40, 20, 40, 20)
         }
 
-        // Susun daftar item
         items.forEach { rawItem ->
             val item = rawItem as? Map<*, *> ?: return@forEach
             val nama = item["nama_produk"].toString()

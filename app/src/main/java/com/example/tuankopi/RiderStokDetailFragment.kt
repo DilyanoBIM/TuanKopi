@@ -64,7 +64,8 @@ class RiderStokDetailFragment : Fragment() {
         setupRecyclerViewDetail()
         muatSpesifikDataDetailStokHarian()
 
-        binding.btnBackKeDaftarTanggal.setOnClickListener {
+        // Fungsi Tombol Kembali (ID sudah diperbarui)
+        binding.btnBackDetail.setOnClickListener {
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderStokAktifFragment())
         }
 

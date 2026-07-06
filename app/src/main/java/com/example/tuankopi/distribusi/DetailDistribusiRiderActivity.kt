@@ -12,6 +12,8 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.databinding.ActivityDetailDistribusiRiderBinding
@@ -20,8 +22,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import java.text.NumberFormat
 import java.util.Locale
-import kotlin.collections.get
-import kotlin.collections.iterator
 
 data class ItemMuatanRider(
     val idProduk: String,
@@ -52,21 +52,23 @@ class DetailDistribusiRiderActivity : AppCompatActivity() {
         binding = ActivityDetailDistribusiRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
-        setSupportActionBar(binding.customToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Muatan: ${intent.getStringExtra("RIDER_NAMA") ?: ""}"
-
-        mFirestore = FirebaseFirestore.getInstance()
         targetTanggal = intent.getStringExtra("TARGET_TANGGAL") ?: ""
         riderUid = intent.getStringExtra("RIDER_UID") ?: ""
         riderNama = intent.getStringExtra("RIDER_NAMA") ?: ""
 
         cleanedTgl = targetTanggal.replace("-", "")
 
-        // Set judul utama halaman
+        setSupportActionBar(binding.customToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Muatan: $riderNama"
 
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
+
+        mFirestore = FirebaseFirestore.getInstance()
         setupRecyclerView()
 
         binding.fabTambahJatahSuplai.setOnClickListener {
@@ -95,14 +97,10 @@ class DetailDistribusiRiderActivity : AppCompatActivity() {
             .addSnapshotListener { snapshot, _ ->
                 if (snapshot != null && snapshot.exists()) {
 
-                    // ────────────────────────────────────────────────────────────────────────
-                    // PEMBARUAN: Ambil data modal_kembalian harian lalu render ke Header Sub-Title
-                    // ────────────────────────────────────────────────────────────────────────
                     val cashAwal = snapshot.getLong("modal_kembalian") ?: 0L
                     val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
                     val textModalFormat = formatterRupiah.format(cashAwal).replace(",00", "")
 
-                    // Kita tempelkan informasi modal kembalian dinamis ini ke sub-header layout XML
                     binding.tvHeaderDetailDist.text = "Muatan $riderNama — Modal Kembalian: $textModalFormat"
 
                     listMuatanLokal.clear()

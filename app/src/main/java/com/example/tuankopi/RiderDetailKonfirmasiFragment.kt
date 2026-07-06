@@ -33,7 +33,7 @@ class RiderDetailKonfirmasiFragment : Fragment() {
     private var tanggalTarget = ""
     private var docIdStokTarget = ""
     private var isLocked = false
-    private val petaVerifikasiItem = HashMap<String, Int>() // id_produk / KEY_MODAL -> 0: belum pilih, 1: sesuai, 2: selisih
+    private val petaVerifikasiItem = HashMap<String, Int>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +42,11 @@ class RiderDetailKonfirmasiFragment : Fragment() {
         _binding = FragmentRiderDetailKonfirmasiBinding.inflate(inflater, container, false)
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
+
+        // Fungsi Tombol Kembali menuju Daftar Tanggal Logistik
+        binding.btnBackDetail.setOnClickListener {
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderKonfirmasiStokFragment())
+        }
 
         tanggalTarget = arguments?.getString("KEY_TANGGAL") ?: ""
         binding.tvTanggalTerpilih.text = "Tanggal: $tanggalTarget"
@@ -69,13 +74,11 @@ class RiderDetailKonfirmasiFragment : Fragment() {
                 if (error != null || !isAdded) return@addSnapshotListener
                 if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
 
-                // Mengunci mutlak jika status_stok sudah AKTIF atau OPEN
                 val statusStokUtama = snapshot.getString("status_stok") ?: "CLOSED"
                 isLocked = (statusStokUtama == "AKTIF" || statusStokUtama == "OPEN")
 
                 binding.containerDetailItemStok.removeAllViews()
 
-                // 1. TAMPILKAN BARIS VERIFIKASI MODAL KEMBALIAN DI POSISI PALING ATAS
                 val modalKembalian = snapshot.getLong("modal_kembalian") ?: 0L
                 val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
                 val textModalRupiah = formatter.format(modalKembalian).replace(",00", "")
@@ -85,9 +88,8 @@ class RiderDetailKonfirmasiFragment : Fragment() {
                 }
                 tampilkanBarisVerifikasiGenerik("KEY_MODAL", "💰 Modal Cash Awal Keliling", textModalRupiah)
 
-                // 2. LOOPER UNTUK DAFTAR PRODUK KOPI
                 val detailStokMap = snapshot.get("detail_stok") as? Map<*, *> ?: return@addSnapshotListener
-                var totalItemHitung = 1 // Diinisialisasi dari angka 1 karena ada Modal Cash di atas
+                var totalItemHitung = 1
 
                 for ((key, value) in detailStokMap) {
                     val idProduk = key.toString()
@@ -225,13 +227,12 @@ class RiderDetailKonfirmasiFragment : Fragment() {
 
         binding.tvStatusKunciStok.visibility = View.GONE
 
-        // Validasi kelayakan: Munculkan tombol jika modal awal + kopi murni semuanya sudah dicek
         if (jumlahSudahPilih == totalItem) {
             if (adaSalah) {
                 binding.btnTerimaStokFinal.visibility = View.GONE
                 binding.btnKomplainOwnerFinal.visibility = View.VISIBLE
             } else {
-                binding.btnTerimaStokFinal.visibility = View.VISIBLE // ◄ SUDAH STERIL DI SINI, BIM!
+                binding.btnTerimaStokFinal.visibility = View.VISIBLE
                 binding.btnKomplainOwnerFinal.visibility = View.GONE
             }
         } else {
@@ -261,7 +262,6 @@ class RiderDetailKonfirmasiFragment : Fragment() {
                     subMapTerbarui[subKey.toString()] = subVal!!
                 }
 
-                // Injeksi flag diterima = true hanya jika item kopi murni dikonfirmasi SESUAI
                 if (petaVerifikasiItem[idProd] == 1) {
                     subMapTerbarui["diterima"] = true
                 }

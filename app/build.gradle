@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.example.tuankopi'
-    compileSdk 35 // Dinaikkan ke 35 agar sinkron dengan syarat minimum Gradle 9
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.example.tuankopi"
         minSdk 24
-        targetSdk 35 // Dinaikkan ke 35
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
@@ -26,7 +26,7 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17 // Gradle 9 mewajibkan Java 17
+        sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 

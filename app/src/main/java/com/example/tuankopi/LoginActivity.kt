@@ -9,8 +9,10 @@ import androidx.lifecycle.lifecycleScope
 import com.example.tuankopi.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
 
@@ -25,6 +27,13 @@ class LoginActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
+
+        // FITUR BARU: Auto-Login jika sesi sebelumnya belum di-logout
+        if (mAuth.currentUser != null) {
+            binding.progressBar.visibility = View.VISIBLE
+            binding.btnSignIn.visibility = View.GONE
+            lifecycleScope.launch { arahkanKeDashboardSesuaiRole(mAuth.currentUser!!.uid) }
+        }
 
         binding.btnSignIn.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
@@ -50,24 +59,37 @@ class LoginActivity : AppCompatActivity() {
         binding.btnSignIn.visibility = View.GONE
 
         try {
-            // .await() secara asinkron menunggu respons jaringan tanpa memblokir Main Thread
-            val authResult = mAuth.signInWithEmailAndPassword(email, password).await()
-            val uid = authResult.user?.uid
+            // OPTIMASI: Pindah ke Background Thread (IO) agar Main Thread tidak freeze saat jaringan lambat
+            val uid = withContext(Dispatchers.IO) {
+                val authResult = mAuth.signInWithEmailAndPassword(email, password).await()
+                authResult.user?.uid
+            }
 
             if (uid == null) {
                 resetKomponenUI("Gagal mengidentifikasi User ID")
                 return
             }
 
-            val document = mFirestore.collection("users").document(uid).get().await()
+            arahkanKeDashboardSesuaiRole(uid)
+
+        } catch (e: Exception) {
+            resetKomponenUI("Gagal login: ${e.localizedMessage}")
+        }
+    }
+
+    private suspend fun arahkanKeDashboardSesuaiRole(uid: String) {
+        try {
+            // OPTIMASI: Baca Firestore di Background Thread (IO)
+            val document = withContext(Dispatchers.IO) {
+                mFirestore.collection("users").document(uid).get().await()
+            }
 
             if (document != null && document.exists()) {
-                // Verifikasi status akun langsung di sini (tidak perlu Dispatchers.Default)
                 val statusAkun = document.getBoolean("status_akun") ?: false
                 if (!statusAkun) {
                     mAuth.signOut()
                     resetKomponenUI("Akun Anda dinonaktifkan oleh Owner.")
-                    return // Sekarang return ini benar-benar menghentikan fungsi jalankanProsesLogin
+                    return
                 }
 
                 val namaUser = document.getString("nama") ?: "User"
@@ -91,11 +113,12 @@ class LoginActivity : AppCompatActivity() {
                 }
             } else {
                 mAuth.signOut()
-                resetKomponenUI("Profil akun belum terdaftar di database Firestore.")
+                resetKomponenUI("Profil akun belum terdaftar di database.")
             }
 
         } catch (e: Exception) {
-            resetKomponenUI("Terjadi kesalahan: ${e.localizedMessage}")
+            mAuth.signOut()
+            resetKomponenUI("Gagal memuat profil: ${e.localizedMessage}")
         }
     }
 

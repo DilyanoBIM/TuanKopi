@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tuankopi.databinding.ActivityManageRiderBinding
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,6 +25,13 @@ class ManageRiderActivity : AppCompatActivity() {
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Kelola Operasional Rider"
+
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
 
@@ -84,9 +93,9 @@ class ManageRiderActivity : AppCompatActivity() {
             }
     }
 
-    // 2. Fungsi Logika: Menangani ketika tombol panah kembali di bar atas diklik
+    // 3. Fungsi Logika: Menangani ketika tombol panah kembali di bar atas diklik
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed() // Menutup halaman ini dan kembali ke OwnerDashboardActivity
+        onBackPressedDispatcher.onBackPressed() // Menutup halaman ini dan kembali
         return true
     }
 }

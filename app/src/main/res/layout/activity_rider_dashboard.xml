@@ -7,15 +7,23 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- TOOLBAR CUSTOM SEBAGAI TOP NAVIGATION BAR -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/rider_toolbar"
+    <!-- BUNGKUS DENGAN APPBARLAYOUT UNTUK MEMBERIKAN RUANG LEBIH LUAS KE BAWAH -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="100dp"
         android:background="#6200EE"
-        app:titleTextColor="#FFFFFF"
-        app:title="Tuan Kopi - Rider"
-        app:menu="@menu/menu_rider_top" />
+        app:elevation="4dp">
+
+        <!-- TOOLBAR CUSTOM SEBAGAI TOP NAVIGATION BAR -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/rider_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:titleTextColor="#FFFFFF"
+            app:title="Tuan Kopi - Rider"
+            app:menu="@menu/menu_rider_top" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Container Wadah Fragment (Mengambil sisa ruang yang ada) -->
     <FrameLayout

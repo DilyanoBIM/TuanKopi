@@ -15,24 +15,20 @@
         android:gravity="center_vertical"
         android:layout_marginBottom="16dp">
 
-        <Button
-            android:id="@+id/btnBackKeDaftarTanggal"
+        <ImageView
+            android:id="@+id/btnBackDetail"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:text="&lt;"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#191C1E"
-            android:backgroundTint="#E0E0E0"
-            android:padding="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"/>
+            android:src="?attr/homeAsUpIndicator"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:layout_marginEnd="8dp"
+            app:tint="#191C1E"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="12dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvDetailHeaderTanggal"

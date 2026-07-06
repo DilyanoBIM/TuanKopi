@@ -5,31 +5,37 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tuankopi.databinding.ActivityManageStokGudangBinding
+import com.example.tuankopi.databinding.ActivityManageDistribusiBinding
 import com.example.tuankopi.databinding.ItemTanggalGudangBinding
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ManageDistribusiActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityManageStokGudangBinding
+    private lateinit var binding: ActivityManageDistribusiBinding
     private lateinit var mFirestore: FirebaseFirestore
     private var listTanggal = ArrayList<String>()
     private lateinit var mAdapter: TanggalAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityManageStokGudangBinding.inflate(layoutInflater)
+        // Gunakan binding khusus untuk layout Manage Distribusi
+        binding = ActivityManageDistribusiBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Di dalam onCreate(), ganti inisialisasi Action bar lama dengan:
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Pilih Tanggal Distribusi"
 
-        // Sembunyikan FAB tambah tanggal karena distribusi hanya mengikuti tanggal gudang yang sudah ada
-        binding.fabAddStokGudang.hide()
+        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, insets.top, 0, 0)
+            windowInsets
+        }
 
         mFirestore = FirebaseFirestore.getInstance()
         setupRecyclerView()

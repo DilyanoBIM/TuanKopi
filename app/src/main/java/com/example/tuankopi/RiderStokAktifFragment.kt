@@ -16,7 +16,6 @@ import com.google.firebase.firestore.Query
 import java.text.NumberFormat
 import java.util.Locale
 
-// Data Class representasi item baris tanggal dokumen stok_harian
 data class ItemTanggalDokumen(
     val docId: String,
     val tanggal: String,
@@ -24,9 +23,6 @@ data class ItemTanggalDokumen(
     val modalKembalian: Long
 )
 
-// ────────────────────────────────────────────────────────────────────────
-// PERBAIKAN: Meletakkan model data anak agar scope visibilitasnya menjadi publik global
-// ────────────────────────────────────────────────────────────────────────
 data class SubDetailKopi(
     val namaProduk: String,
     val stokAwal: Long,
@@ -51,6 +47,11 @@ class RiderStokAktifFragment : Fragment() {
         _binding = FragmentRiderStokAktifBinding.inflate(inflater, container, false)
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
+
+        // Fungsi Tombol Kembali menuju Menu Utama Stok Rider
+        binding.btnBack.setOnClickListener {
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderStokFragment())
+        }
 
         setupRecyclerView()
         muatDaftarTanggalAktifRider()
@@ -120,9 +121,6 @@ class RiderStokAktifFragment : Fragment() {
 
                 if (listTanggal.isEmpty()) {
                     binding.tvStokAktifKosong.text = "Belum ada tanggal jualan yang Anda terima jatahnya."
-                    // ────────────────────────────────────────────────────────────────────────
-                    // PERBAIKAN EROR MERAH: Sikat habis 'View.semibold ||' yang typo merusak kompilasi
-                    // ────────────────────────────────────────────────────────────────────────
                     binding.tvStokAktifKosong.visibility = View.VISIBLE
                     binding.rvRiwayatStokTanggal.visibility = View.GONE
                 } else {
