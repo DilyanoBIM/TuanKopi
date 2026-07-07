@@ -46,14 +46,19 @@ class AktivitasPilihTanggalFragment : Fragment() {
         mFirestore = FirebaseFirestore.getInstance()
 
         modeTujuan = arguments?.getString("MODE") ?: "RIWAYAT"
-        binding.tvDetailHeader.text = if (modeTujuan == "RIWAYAT") "Pilih Tanggal Transaksi" else "Pilih Tanggal Closing"
 
-        binding.btnBack.setOnClickListener {
-            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderAktivitasFragment())
+        // Sesuaikan Header
+        val activity = activity as? RiderDashboardActivity
+        activity?.setSupportActionBar(binding.customToolbar)
+        activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.customToolbar.setNavigationOnClickListener {
+            activity?.gantiRiderFragment(RiderAktivitasFragment())
         }
 
+        binding.tvDetailHeader.text = if (modeTujuan == "RIWAYAT") "Pilih Tanggal Transaksi" else "Pilih Tanggal Closing"
+
         setupRecyclerView()
-        muatTanggalBerdasarkanStokHarianRider()
+        muatTanggalBerdasarkanFilterMode()
 
         return binding.root
     }
@@ -72,15 +77,22 @@ class AktivitasPilihTanggalFragment : Fragment() {
         binding.rvTanggalAktivitas.adapter = mAdapter
     }
 
-    private fun muatTanggalBerdasarkanStokHarianRider() {
+    private fun muatTanggalBerdasarkanFilterMode() {
         val uidRider = mAuth.currentUser?.uid ?: return
 
-        mFirestore.collection("stok_harian")
+        var query = mFirestore.collection("stok_harian")
             .whereEqualTo("id_rider", uidRider)
-            .orderBy("tanggal", Query.Direction.DESCENDING)
+
+        // Jika mode CLOSING, pastikan Rider sudah menyelesaikan jualan di jalan.
+        // Kita JANGAN filter status_stok = AKTIF, agar riwayat yang sudah CLOSED di masa lalu tetap bisa dilihat.
+        if (modeTujuan == "CLOSING") {
+            query = query.whereEqualTo("status_jualan", "SELESAI JUALAN")
+        }
+
+        query.orderBy("tanggal", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { snapshots ->
-                if (snapshots != null) {
+                if (snapshots != null && isAdded) {
                     listTanggal.clear()
                     for (doc in snapshots.documents) {
                         val tgl = doc.getString("tanggal")
@@ -89,9 +101,13 @@ class AktivitasPilihTanggalFragment : Fragment() {
                     mAdapter.notifyDataSetChanged()
 
                     if (listTanggal.isEmpty()) {
-                        Toast.makeText(context, "Belum ada riwayat operasional.", Toast.LENGTH_SHORT).show()
+                        val pesan = if (modeTujuan == "RIWAYAT") "Belum ada riwayat operasional." else "Belum ada riwayat closing atau belum selesai jualan hari ini."
+                        Toast.makeText(context, pesan, Toast.LENGTH_LONG).show()
                     }
                 }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Gagal memuat: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
     }
 

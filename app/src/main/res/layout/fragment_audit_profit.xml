@@ -24,7 +24,7 @@
         android:alignmentMode="alignMargins">
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/cardLiveMonitor"
+            android:id="@+id/cardRiwayatPenjualan"
             android:layout_width="0dp"
             android:layout_height="120dp"
             android:layout_columnWeight="1"
@@ -40,7 +40,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Live Monitoring"
+                    android:text="Riwayat Penjualan"
                     android:textStyle="bold"
                     android:textColor="#3E2723"/>
             </LinearLayout>

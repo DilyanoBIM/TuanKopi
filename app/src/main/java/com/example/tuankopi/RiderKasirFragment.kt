@@ -360,17 +360,17 @@ class RiderKasirFragment : Fragment() {
     }
 
     // Menghapus parameter urlSimulatorLengkap yang tidak digunakan
+    // Ganti fungsi tampilkanDialogQRISTester di dalam RiderKasirFragment.kt dengan versi ringkas ini:
     private fun tampilkanDialogQRISTester(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
         val contextLayout = context ?: return null
 
-        // Membuat container utama secara dinamis menggunakan LinearLayout
         val rootContainer = android.widget.LinearLayout(contextLayout).apply {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding(32, 32, 32, 32)
             gravity = android.view.Gravity.CENTER_HORIZONTAL
         }
 
-        // 1. ELEMEN QR CODE: Menggunakan WebView untuk memunculkan gambar QR Code asli Midtrans
+        // Menggunakan WebView untuk merender URL image QRIS langsung dari server Midtrans
         val webViewQris = android.webkit.WebView(contextLayout).apply {
             layoutParams = android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
@@ -378,13 +378,12 @@ class RiderKasirFragment : Fragment() {
             )
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
+            settings.javaScriptEnabled = true // Tambahan opsional untuk stabilitas render WebView
             loadUrl(urlGambarQris)
         }
 
-        // Susun komponen ke dalam container layout (Hanya menyertakan WebView)
         rootContainer.addView(webViewQris)
 
-        // Bangun AlertDialog
         val dialog = androidx.appcompat.app.AlertDialog.Builder(contextLayout)
             .setTitle("Scan Pembayaran QRIS")
             .setMessage("Tunjukkan QR Code ini ke pelanggan untuk memproses pembayaran.")

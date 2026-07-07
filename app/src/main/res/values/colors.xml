@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="metode_qris">#1976D2</color>
+    <color name="metode_tunai">#388E3C</color>
+    <color name="status_success">#2E7D32</color>
+    <color name="status_failed">#D32F2F</color>
+    <color name="status_pending">#F57C00</color>
 </resources>

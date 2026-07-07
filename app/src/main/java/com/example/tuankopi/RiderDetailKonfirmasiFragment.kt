@@ -61,10 +61,6 @@ class RiderDetailKonfirmasiFragment : Fragment() {
             eksekusiKonfirmasiTerimaStokKolektif()
         }
 
-        binding.btnKomplainOwnerFinal.setOnClickListener {
-            Toast.makeText(context, "Laporan selisih dikirim. Menunggu Owner melakukan perubahan data!", Toast.LENGTH_LONG).show()
-        }
-
         return binding.root
     }
 
@@ -145,30 +141,14 @@ class RiderDetailKonfirmasiFragment : Fragment() {
         }
 
         val btnSesuai = Button(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(0, dpToPx(ctx, 40), 1f).apply { rightMargin = dpToPx(ctx, 4) }
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(ctx, 40))
             text = "SESUAI"
-            textSize = 11f
+            textSize = 12f
             setTypeface(null, Typeface.BOLD)
             isEnabled = !isLocked
 
             if (petaVerifikasiItem[idKey] == 1) {
                 setBackgroundColor(Color.parseColor("#2E7D32"))
-                setTextColor(Color.WHITE)
-            } else {
-                setBackgroundColor(Color.parseColor("#E0E0E0"))
-                setTextColor(Color.BLACK)
-            }
-        }
-
-        val btnTidakSesuai = Button(ctx).apply {
-            layoutParams = LinearLayout.LayoutParams(0, dpToPx(ctx, 40), 1f).apply { leftMargin = dpToPx(ctx, 4) }
-            text = "ADA SELISIH"
-            textSize = 11f
-            setTypeface(null, Typeface.BOLD)
-            isEnabled = !isLocked
-
-            if (petaVerifikasiItem[idKey] == 2) {
-                setBackgroundColor(Color.parseColor("#C62828"))
                 setTextColor(Color.WHITE)
             } else {
                 setBackgroundColor(Color.parseColor("#E0E0E0"))
@@ -182,26 +162,11 @@ class RiderDetailKonfirmasiFragment : Fragment() {
 
             btnSesuai.setBackgroundColor(Color.parseColor("#2E7D32"))
             btnSesuai.setTextColor(Color.WHITE)
-            btnTidakSesuai.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            btnTidakSesuai.setTextColor(Color.BLACK)
-
-            evaluasiStateTombolKeputusan(petaVerifikasiItem.size)
-        }
-
-        btnTidakSesuai.setOnClickListener {
-            if (isLocked) return@setOnClickListener
-            petaVerifikasiItem[idKey] = 2
-
-            btnTidakSesuai.setBackgroundColor(Color.parseColor("#C62828"))
-            btnTidakSesuai.setTextColor(Color.WHITE)
-            btnSesuai.setBackgroundColor(Color.parseColor("#E0E0E0"))
-            btnSesuai.setTextColor(Color.BLACK)
 
             evaluasiStateTombolKeputusan(petaVerifikasiItem.size)
         }
 
         groupTombol.addView(btnSesuai)
-        groupTombol.addView(btnTidakSesuai)
         susunanKonten.addView(groupTombol)
         cardItem.addView(susunanKonten)
         binding.containerDetailItemStok.addView(cardItem)
@@ -212,32 +177,23 @@ class RiderDetailKonfirmasiFragment : Fragment() {
             binding.tvStatusKunciStok.text = "Stok aktif! Selamat berjualan."
             binding.tvStatusKunciStok.visibility = View.VISIBLE
             binding.btnTerimaStokFinal.visibility = View.GONE
-            binding.btnKomplainOwnerFinal.visibility = View.GONE
             return
         }
 
         if (petaVerifikasiItem.isEmpty()) return
         var jumlahSudahPilih = 0
-        var adaSalah = false
 
         for ((_, status) in petaVerifikasiItem) {
-            if (status == 1 || status == 2) jumlahSudahPilih++
-            if (status == 2) adaSalah = true
+            if (status == 1) jumlahSudahPilih++
         }
 
         binding.tvStatusKunciStok.visibility = View.GONE
 
+        // Tampilkan tombol final hanya jika semua item sudah diklik "Sesuai"
         if (jumlahSudahPilih == totalItem) {
-            if (adaSalah) {
-                binding.btnTerimaStokFinal.visibility = View.GONE
-                binding.btnKomplainOwnerFinal.visibility = View.VISIBLE
-            } else {
-                binding.btnTerimaStokFinal.visibility = View.VISIBLE
-                binding.btnKomplainOwnerFinal.visibility = View.GONE
-            }
+            binding.btnTerimaStokFinal.visibility = View.VISIBLE
         } else {
             binding.btnTerimaStokFinal.visibility = View.GONE
-            binding.btnKomplainOwnerFinal.visibility = View.GONE
         }
     }
 

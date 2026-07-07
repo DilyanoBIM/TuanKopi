@@ -1,5 +1,6 @@
 package com.example.tuankopi.ownervalidasi
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +19,7 @@ class ValidasiDetailFragment : Fragment() {
     private lateinit var mFirestore: FirebaseFirestore
 
     private var idClosingLaporan: String? = null
+    private var nominalSelisih: Long = 0L
 
     companion object {
         fun newInstance(idClosing: String) = ValidasiDetailFragment().apply {
@@ -34,7 +36,8 @@ class ValidasiDetailFragment : Fragment() {
 
         loadDetailSetoran()
 
-        binding.btnValidasiCocok.setOnClickListener { prosesValidasi("COCOK") }
+        // IMPROVISASI: Menyimpan status_validasi ke database sesuai instruksi
+        binding.btnValidasiCocok.setOnClickListener { prosesValidasi("SUCCESS") }
         binding.btnTolakSelisih.setOnClickListener { prosesValidasi("SELISIH") }
 
         return binding.root
@@ -56,32 +59,43 @@ class ValidasiDetailFragment : Fragment() {
         if (laporan == null) return
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
 
-        binding.tvNamaDanTanggal.text = "Rider: ${laporan.nama_rider} | Tanggal: ${laporan.tanggal}"
-        binding.tvTunaiSistem.text = "Total Tunai Sistem: ${fmtRp.format(laporan.total_tunai_sistem)}"
-        binding.tvQrisSistem.text = "Total QRIS Sistem: ${fmtRp.format(laporan.total_qris_sistem)}"
-        binding.tvTotalOmset.text = "Total Omset (Kotor): ${fmtRp.format(laporan.total_omset_sistem)}"
+        nominalSelisih = laporan.nominal_selisih
 
-        binding.tvUangFisikDilaporkan.text = "Fisik Diserahkan Rider: ${fmtRp.format(laporan.uang_tunai_fisik)}"
+        binding.tvNamaDanTanggal.text = "👤 Rider: ${laporan.nama_rider}\n📅 Tanggal: ${laporan.tanggal}"
+        binding.tvTunaiSistem.text = fmtRp.format(laporan.total_tunai_sistem).replace(",00", "")
+        binding.tvQrisSistem.text = fmtRp.format(laporan.total_qris_sistem).replace(",00", "")
+        binding.tvTotalOmset.text = fmtRp.format(laporan.total_omset_sistem).replace(",00", "")
+        binding.tvUangFisikDilaporkan.text = fmtRp.format(laporan.uang_tunai_fisik).replace(",00", "")
 
-        if (laporan.nominal_selisih != 0L) {
-            binding.tvStatusSelisih.text = "Selisih Tercatat Rider: ${fmtRp.format(laporan.nominal_selisih)}"
-            binding.tvStatusSelisih.setTextColor(android.graphics.Color.RED)
+        if (laporan.catatan_owner.isNotEmpty()) {
+            binding.etCatatanOwner.setText(laporan.catatan_owner)
+        }
+
+        // Penentuan warna peringatan selisih kasir laci uang tunai fisik
+        if (nominalSelisih < 0) {
+            binding.tvStatusSelisih.text = "⚠️ MINUS / KURANG: ${fmtRp.format(nominalSelisih).replace(",00", "")}"
+            binding.tvStatusSelisih.setTextColor(Color.parseColor("#C62828"))
+        } else if (nominalSelisih > 0) {
+            binding.tvStatusSelisih.text = "💰 SURPLUS / LEBIH: +${fmtRp.format(nominalSelisih).replace(",00", "")}"
+            binding.tvStatusSelisih.setTextColor(Color.parseColor("#F57F17"))
         } else {
-            binding.tvStatusSelisih.text = "Selisih: Rp 0 (Balance)"
-            binding.tvStatusSelisih.setTextColor(android.graphics.Color.GREEN)
+            binding.tvStatusSelisih.text = "✅ SETORAN MATCH (BALANCE)"
+            binding.tvStatusSelisih.setTextColor(Color.parseColor("#2E7D32"))
         }
     }
 
     private fun prosesValidasi(statusUpdate: String) {
-        val catatan = binding.etCatatanOwner.text.toString().trim()
+        var catatan = binding.etCatatanOwner.text.toString().trim()
 
-        // Validasi catatan jika Owner menandai status sebagai SELISIH
+        // IMPROVISASI LOGIKA AUDIT: Jika owner klik ADA SELISIH tapi lupa mengetik teks evaluasi,
+        // sistem akan otomatis membuat template peringatan resmi agar rider segera merespons.
         if (statusUpdate == "SELISIH" && catatan.isEmpty()) {
-            Toast.makeText(context, "Harap isi catatan untuk memberitahu Rider terkait selisih!", Toast.LENGTH_SHORT).show()
-            return
+            val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+            catatan = "Audit Owner: Ditemukan ketidakcocokan saldo sebesar ${fmtRp.format(nominalSelisih).replace(",00", "")}. Harap hitung ulang modal kembalian Anda."
+            binding.etCatatanOwner.setText(catatan)
+            Toast.makeText(context, "Catatan otomatis ditambahkan sistem.", Toast.LENGTH_SHORT).show()
         }
 
-        // Kunci tombol agar tidak double-click
         binding.btnValidasiCocok.isEnabled = false
         binding.btnTolakSelisih.isEnabled = false
 
@@ -96,13 +110,13 @@ class ValidasiDetailFragment : Fragment() {
             .addOnSuccessListener {
                 if (isAdded) {
                     Toast.makeText(context, "Validasi Berhasil Disimpan ($statusUpdate)", Toast.LENGTH_SHORT).show()
-                    parentFragmentManager.popBackStack() // Kembali ke daftar List
+                    parentFragmentManager.popBackStack()
                 }
             }
             .addOnFailureListener { e ->
                 binding.btnValidasiCocok.isEnabled = true
                 binding.btnTolakSelisih.isEnabled = true
-                Toast.makeText(context, "Gagal memperbarui validasi: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Gagal: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

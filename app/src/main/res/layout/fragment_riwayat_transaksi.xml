@@ -6,7 +6,6 @@
     android:orientation="vertical"
     android:background="#F8F9FB">
 
-    <!-- Baris Header Tombol Back -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,19 +28,79 @@
             android:id="@+id/tvInfoTanggal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Transaksi Tanggal: --"
+            android:text="Transaksi Tanggal"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#191C1E"/>
     </LinearLayout>
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Omset (Sukses)"
+                    android:textColor="#757575"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/tvRingkasanTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rp 0"
+                    android:textColor="#2E7D32"
+                    android:textSize="18sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total Data"
+                    android:textColor="#757575"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/tvRingkasanQty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 Transaksi"
+                    android:textColor="#191C1E"
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:paddingHorizontal="16dp"
         android:scrollbars="none">
 
-        <!-- Penambahan Filter Lengkap (Failed dan Pending) -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/cgFilterTransaksi"
             android:layout_width="wrap_content"
@@ -84,7 +143,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Failed" />
-
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
@@ -100,6 +158,6 @@
         android:id="@+id/rvRiwayatTransaksi"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
+        android:paddingHorizontal="8dp"
         android:clipToPadding="false"/>
 </LinearLayout>

@@ -54,7 +54,7 @@ class RiwayatTransaksiFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
 
         tanggalTarget = arguments?.getString("TANGGAL") ?: ""
-        binding.tvInfoTanggal.text = "Transaksi Tanggal: $tanggalTarget"
+        binding.tvInfoTanggal.text = "Transaksi: $tanggalTarget"
 
         binding.btnBackDetail.setOnClickListener {
             val tglFragment = AktivitasPilihTanggalFragment.newInstance("RIWAYAT")
@@ -89,21 +89,16 @@ class RiwayatTransaksiFragment : Fragment() {
 
     private fun fetchRiwayatBerdasarkanTanggal() {
         val uid = mAuth.currentUser?.uid ?: return
-
         if (tanggalTarget.isEmpty()) return
+
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val dateTarget = sdf.parse(tanggalTarget) ?: return
 
-        // Ambil batas waktu tepat dari 00:00:00 sampai 23:59:59 pada hari tersebut
         val cal = Calendar.getInstance().apply { time = dateTarget }
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0)
         val startOfDay = cal.time
 
-        cal.set(Calendar.HOUR_OF_DAY, 23)
-        cal.set(Calendar.MINUTE, 59)
-        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
         val endOfDay = cal.time
 
         mFirestore.collection("transactions")
@@ -125,8 +120,13 @@ class RiwayatTransaksiFragment : Fragment() {
 
     private fun terapkanFilter() {
         filteredList.clear()
+        var totalOmset = 0L
+
         if (currentFilter == "Semua") {
             filteredList.addAll(rawTransactionList)
+            // Kalkulasi omset hanya untuk yang SUCCESS
+            totalOmset = rawTransactionList.filter { it["status_pembayaran"].toString().uppercase() == "SUCCESS" }
+                .sumOf { it["total_harga"] as? Long ?: 0L }
         } else {
             val filterKata = currentFilter.uppercase(Locale.getDefault())
             filteredList.addAll(rawTransactionList.filter {
@@ -134,9 +134,18 @@ class RiwayatTransaksiFragment : Fragment() {
                 val status = it["status_pembayaran"].toString().uppercase()
                 metode == filterKata || status == filterKata
             })
+
+            // Kalkulasi omset berdasarkan filter
+            totalOmset = filteredList.filter { it["status_pembayaran"].toString().uppercase() == "SUCCESS" }
+                .sumOf { it["total_harga"] as? Long ?: 0L }
         }
 
         mAdapter.notifyDataSetChanged()
+
+        // Update UI Dashboard Rangkuman
+        val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        binding.tvRingkasanTotal.text = fmtRp.format(totalOmset).replace(",00", "")
+        binding.tvRingkasanQty.text = "${filteredList.size} Transaksi"
 
         if (filteredList.isEmpty()) {
             binding.tvEmptyStateRiwayat.visibility = View.VISIBLE
@@ -153,7 +162,7 @@ class RiwayatTransaksiFragment : Fragment() {
         val status = data["status_pembayaran"].toString()
         val total = data["total_harga"] as? Long ?: 0L
 
-        val items = data["items"] as? List<*> ?: emptyList<Any?>()
+        val items = data["items"] as? List<*> ?: emptyList<Any>()
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
 
         val container = LinearLayout(context).apply {

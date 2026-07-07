@@ -4,11 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentAuditProfitBinding
-// Tambahkan baris import ini
 import com.example.tuankopi.ownervalidasi.ValidasiListFragment
+import com.example.tuankopi.riwayat.RiwayatPenjualanFragment // Import Fragment baru
 
 class AuditProfitFragment : Fragment() {
     private var _binding: FragmentAuditProfitBinding? = null
@@ -17,13 +16,17 @@ class AuditProfitFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAuditProfitBinding.inflate(inflater, container, false)
 
-        binding.cardLiveMonitor.setOnClickListener {
-            Toast.makeText(requireContext(), "Membuka Pantauan Sisa Stok Rider...", Toast.LENGTH_SHORT).show()
+        // Buka Riwayat Penjualan
+        binding.cardRiwayatPenjualan.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, RiwayatPenjualanFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         binding.cardValidasiSetoran.setOnClickListener {
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, ValidasiListFragment()) // Sesuaikan R.id.fragment_container dengan ID FrameLayout utama Anda
+                .replace(R.id.fragment_container, ValidasiListFragment())
                 .addToBackStack(null)
                 .commit()
         }

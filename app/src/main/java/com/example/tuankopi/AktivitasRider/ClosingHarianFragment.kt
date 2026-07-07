@@ -60,7 +60,7 @@ class ClosingHarianFragment : Fragment() {
 
         val cleanTgl = tanggalTarget.replace("-", "")
         docIdStokTarget = "${cleanTgl}_$uidRider"
-        docIdClosing = docIdStokTarget
+        docIdClosing = "${tanggalTarget}_$uidRider"
 
         binding.tvInfoTanggalClosing.text = "Closing: $tanggalTarget"
 
@@ -93,25 +93,32 @@ class ClosingHarianFragment : Fragment() {
                 if (snapshot != null && snapshot.exists()) {
                     val statusValidasi = snapshot.getString("status_validasi") ?: "PENDING"
                     val fisikDisetor = snapshot.getLong("uang_tunai_fisik") ?: 0L
+                    val catatanOwner = snapshot.getString("catatan_owner") ?: ""
 
-                    tampilkanLayarStatusClosing(statusValidasi, fisikDisetor)
+                    if (!binding.etUangFisik.isEnabled) {
+                        binding.etUangFisik.setText(fisikDisetor.toString())
+                    }
+
+                    tampilkanLayarStatusClosing(statusValidasi, fisikDisetor, catatanOwner)
                 } else {
-                    binding.layoutInputFisik.visibility = View.VISIBLE
-                    binding.layoutStatusClosing.visibility = View.GONE
+                    // Jika data belum dilaporkan sama sekali ke Firestore oleh Rider,
+                    // kita reset teks status ke default awal
+                    binding.tvInfoFisikTerkirim.text = "Total Setoran Diserahkan: Rp 0"
+                    binding.tvStatusValidasi.text = "BELUM MELAPORKAN PENJUALAN"
+                    binding.tvStatusValidasi.setTextColor(Color.GRAY)
                 }
             }
     }
 
-    private fun tampilkanLayarStatusClosing(statusValidasi: String, fisikDisetor: Long) {
-        binding.layoutInputFisik.visibility = View.GONE
-        binding.layoutStatusClosing.visibility = View.VISIBLE
+    private fun tampilkanLayarStatusClosing(statusValidasi: String, fisikDisetor: Long, catatanOwner: String) {
+        // Baris visibilitas dihapus karena sudah di-handle langsung oleh tata letak XML secara permanen
 
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
-        binding.tvInfoFisikTerkirim.text = "Uang Disetorkan: ${fmtRp.format(fisikDisetor).replace(",00", "")}"
+        binding.tvInfoFisikTerkirim.text = "Total Setoran Diserahkan: ${fmtRp.format(fisikDisetor).replace(",00", "")}"
 
-        when (statusValidasi) {
+        when (statusValidasi.uppercase(Locale.getDefault())) {
             "PENDING" -> {
-                binding.tvStatusValidasi.text = "⏳ PENDING"
+                binding.tvStatusValidasi.text = "⏳ MENUNGGU OWNER VALIDASI"
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#F57F17"))
             }
             "COCOK" -> {
@@ -119,7 +126,12 @@ class ClosingHarianFragment : Fragment() {
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#2E7D32"))
             }
             "SELISIH" -> {
-                binding.tvStatusValidasi.text = "❌ SELISIH (CEK OWNER)"
+                val teksTampil = if (catatanOwner.isNotEmpty()) {
+                    "❌ SELISIH\n(Catatan: $catatanOwner)"
+                } else {
+                    "❌ SELISIH (DITOLAK)"
+                }
+                binding.tvStatusValidasi.text = teksTampil
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#C62828"))
             }
             else -> {
@@ -144,14 +156,15 @@ class ClosingHarianFragment : Fragment() {
                 }
             }
 
+        // PERBAIKAN: Parsing tanggalTarget secara presisi agar rentang pencarian aman
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val dateTarget = sdf.parse(tanggalTarget) ?: return
+        val dateTarget = try { sdf.parse(tanggalTarget) } catch (e: Exception) { null } ?: return
 
         val cal = Calendar.getInstance().apply { time = dateTarget }
-        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
         val startOfDay = cal.time
 
-        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59); cal.set(Calendar.SECOND, 59); cal.set(Calendar.MILLISECOND, 999)
         val endOfDay = cal.time
 
         mFirestore.collection("transactions")
@@ -159,7 +172,7 @@ class ClosingHarianFragment : Fragment() {
             .whereEqualTo("status_pembayaran", "SUCCESS")
             .whereGreaterThanOrEqualTo("waktu_transaksi", startOfDay)
             .whereLessThanOrEqualTo("waktu_transaksi", endOfDay)
-            .addSnapshotListener { snapshot, _ ->
+            .addSnapshotListener { snapshot, error ->
                 if (snapshot == null || !isAdded) return@addSnapshotListener
 
                 Thread {
@@ -207,20 +220,20 @@ class ClosingHarianFragment : Fragment() {
         val selisih = uangFisik - targetLaci
 
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
-        binding.tvSelisih.text = "Selisih: ${fmtRp.format(selisih).replace(",00", "")}"
+        binding.tvSelisih.text = "Selisih Perhitungan: ${fmtRp.format(selisih).replace(",00", "")}"
     }
 
     private fun konfirmasiClosing() {
         val strFisik = binding.etUangFisik.text.toString().trim()
         if (strFisik.isEmpty()) {
-            Toast.makeText(context, "Harap masukkan jumlah fisik uang tunai!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Harap masukkan jumlah fisik uang tunai di kotak kasir!", Toast.LENGTH_SHORT).show()
             return
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Kunci Aplikasi?")
-            .setMessage("Data closing akan dikirim ke Owner. Anda tidak bisa lagi menerima orderan untuk hari ini.")
-            .setPositiveButton("Ya, Tutup Buku") { _, _ -> prosesKirimClosing() }
+            .setTitle("Kunci Aplikasi Jualan?")
+            .setMessage("Data closing akan direkam permanen dan dikirim ke Owner. Anda tidak akan bisa lagi menerima orderan untuk hari ini.")
+            .setPositiveButton("Ya, Lapor Penjualan") { _, _ -> prosesKirimClosing() }
             .setNegativeButton("Batal", null)
             .show()
     }
@@ -254,13 +267,12 @@ class ClosingHarianFragment : Fragment() {
 
             if (snapStok.exists()) {
                 transaction.update(refStok, mapOf(
-                    "status_stok" to "CLOSED",
-                    "status_jualan" to "SELESAI JUALAN"
+                    "status_stok" to "CLOSED"
                 ))
             }
             null
         }.addOnSuccessListener {
-            Toast.makeText(context, "Tutup Buku Selesai!", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Berhasil Lapor Penjualan!", Toast.LENGTH_LONG).show()
             kunciLayarSudahClosing()
         }.addOnFailureListener { e ->
             binding.btnKirimClosing.isEnabled = true
@@ -271,7 +283,7 @@ class ClosingHarianFragment : Fragment() {
     private fun kunciLayarSudahClosing() {
         binding.etUangFisik.isEnabled = false
         binding.btnKirimClosing.isEnabled = false
-        binding.btnKirimClosing.text = "Laporan Sudah Dikirim"
+        binding.btnKirimClosing.text = "Laporan Sudah Terkunci"
     }
 
     override fun onDestroyView() {

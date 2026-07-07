@@ -6,7 +6,6 @@
     android:background="#F8F9FB"
     android:padding="16dp">
 
-    <!-- HEADER DENGAN TOMBOL KEMBALI -->
     <LinearLayout
         android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
@@ -92,13 +91,5 @@
             android:textStyle="bold"
             android:visibility="gone"/>
 
-        <Button
-            android:id="@+id/btnKomplainOwnerFinal"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="HUBUNGI OWNER (ADA SELISIH)"
-            android:backgroundTint="#C62828"
-            android:textStyle="bold"
-            android:visibility="gone"/>
     </LinearLayout>
 </RelativeLayout>
