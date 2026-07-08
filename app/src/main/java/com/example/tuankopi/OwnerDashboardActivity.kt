@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.ActivityOwnerDashboardBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 
 class OwnerDashboardActivity : AppCompatActivity() {
 
@@ -24,8 +25,8 @@ class OwnerDashboardActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         mAuth = FirebaseAuth.getInstance()
+        daftarkanNotifikasiTransaksiOwner()
 
-        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan pada Owner
         setSupportActionBar(binding.ownerToolbar)
         supportActionBar?.title = "Tuan Kopi - Owner"
 
@@ -111,5 +112,15 @@ class OwnerDashboardActivity : AppCompatActivity() {
             .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
             .create()
             .show()
+    }
+    private fun daftarkanNotifikasiTransaksiOwner() {
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("owners")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    android.util.Log.d("FCM_SETUP", "Sukses mendaftarkan perangkat ke saluran data transaksi Owner.")
+                } else {
+                    android.util.Log.e("FCM_SETUP", "Gagal mendaftarkan topik.", task.exception)
+                }
+            }
     }
 }

@@ -6,6 +6,8 @@
     <!-- CRITICAL: Permissions required for Firebase and network communication -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
     <application
         android:allowBackup="true"
@@ -53,7 +55,13 @@
         <activity android:name=".distribusi.PilihRiderActivity" android:exported="false" />
         <activity android:name=".distribusi.DetailDistribusiRiderActivity" android:exported="false" />
         <activity android:name=".distribusi.InputSuplaiRiderActivity" android:exported="false" />
-
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
