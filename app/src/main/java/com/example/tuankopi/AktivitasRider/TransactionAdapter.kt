@@ -22,20 +22,17 @@ class TransactionAdapter(
 
             val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
 
-            // Set teks ke komponen UI
             binding.tvItemOrderId.text = orderId
             binding.tvItemTotal.text = fmtRp.format(total).replace(",00", "")
             binding.tvItemMetode.text = "Metode: $metode"
             binding.tvItemStatus.text = status
 
-            // Ubah warna teks status biar lebih rapi secara visual
             when (status.uppercase()) {
-                "SUCCESS" -> binding.tvItemStatus.setTextColor(Color.parseColor("#2E7D32")) // Hijau
-                "FAILED" -> binding.tvItemStatus.setTextColor(Color.parseColor("#C62828")) // Merah
-                else -> binding.tvItemStatus.setTextColor(Color.parseColor("#F57F17")) // Orange untuk PENDING
+                "SUCCESS" -> binding.tvItemStatus.setTextColor(Color.parseColor("#2E7D32"))
+                "FAILED" -> binding.tvItemStatus.setTextColor(Color.parseColor("#C62828"))
+                else -> binding.tvItemStatus.setTextColor(Color.parseColor("#F57F17"))
             }
 
-            // Pasang event klik untuk memunculkan popup detail
             binding.root.setOnClickListener {
                 onItemClick(transaction)
             }

@@ -28,7 +28,6 @@ class LoginActivity : AppCompatActivity() {
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
-        // FITUR BARU: Auto-Login jika sesi sebelumnya belum di-logout
         if (mAuth.currentUser != null) {
             binding.progressBar.visibility = View.VISIBLE
             binding.btnSignIn.visibility = View.GONE
@@ -59,7 +58,6 @@ class LoginActivity : AppCompatActivity() {
         binding.btnSignIn.visibility = View.GONE
 
         try {
-            // OPTIMASI: Pindah ke Background Thread (IO) agar Main Thread tidak freeze saat jaringan lambat
             val uid = withContext(Dispatchers.IO) {
                 val authResult = mAuth.signInWithEmailAndPassword(email, password).await()
                 authResult.user?.uid
@@ -79,7 +77,6 @@ class LoginActivity : AppCompatActivity() {
 
     private suspend fun arahkanKeDashboardSesuaiRole(uid: String) {
         try {
-            // OPTIMASI: Baca Firestore di Background Thread (IO)
             val document = withContext(Dispatchers.IO) {
                 mFirestore.collection("users").document(uid).get().await()
             }

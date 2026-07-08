@@ -36,7 +36,6 @@ class InputSuplaiRiderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Gunakan binding khusus untuk Input Suplai Rider
         binding = ActivityInputSuplaiRiderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

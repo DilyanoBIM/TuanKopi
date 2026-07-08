@@ -36,7 +36,6 @@ class ValidasiDetailFragment : Fragment() {
 
         loadDetailSetoran()
 
-        // IMPROVISASI: Menyimpan status_validasi ke database sesuai instruksi
         binding.btnValidasiCocok.setOnClickListener { prosesValidasi("SUCCESS") }
         binding.btnTolakSelisih.setOnClickListener { prosesValidasi("SELISIH") }
 
@@ -71,7 +70,6 @@ class ValidasiDetailFragment : Fragment() {
             binding.etCatatanOwner.setText(laporan.catatan_owner)
         }
 
-        // Penentuan warna peringatan selisih kasir laci uang tunai fisik
         if (nominalSelisih < 0) {
             binding.tvStatusSelisih.text = "⚠️ MINUS / KURANG: ${fmtRp.format(nominalSelisih).replace(",00", "")}"
             binding.tvStatusSelisih.setTextColor(Color.parseColor("#C62828"))
@@ -87,8 +85,6 @@ class ValidasiDetailFragment : Fragment() {
     private fun prosesValidasi(statusUpdate: String) {
         var catatan = binding.etCatatanOwner.text.toString().trim()
 
-        // IMPROVISASI LOGIKA AUDIT: Jika owner klik ADA SELISIH tapi lupa mengetik teks evaluasi,
-        // sistem akan otomatis membuat template peringatan resmi agar rider segera merespons.
         if (statusUpdate == "SELISIH" && catatan.isEmpty()) {
             val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
             catatan = "Audit Owner: Ditemukan ketidakcocokan saldo sebesar ${fmtRp.format(nominalSelisih).replace(",00", "")}. Harap hitung ulang modal kembalian Anda."

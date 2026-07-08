@@ -25,7 +25,6 @@ class ProductAdapter(
         with(holder.binding) {
             tvNamaProdukItem.text = product.nama_produk
 
-            // Format Rupiah
             val format = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
             tvHargaProdukItem.text = format.format(product.harga_jual).replace(",00", "")
 

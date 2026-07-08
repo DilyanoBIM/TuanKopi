@@ -30,12 +30,10 @@ class ManageStokGudangActivity : AppCompatActivity() {
         binding = ActivityManageStokGudangBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Setup Toolbar Custom
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Stok Gudang Harian"
 
-        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar
         ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(0, insets.top, 0, 0)

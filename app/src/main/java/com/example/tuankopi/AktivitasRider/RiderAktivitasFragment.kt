@@ -20,13 +20,11 @@ class RiderAktivitasFragment : Fragment() {
         _binding = FragmentRiderAktivitasBinding.inflate(inflater, container, false)
 
         binding.cardRiwayatTransaksi.setOnClickListener {
-            // Arahkan ke list tanggal dengan flag "RIWAYAT"
             val fragmentTgl = AktivitasPilihTanggalFragment.newInstance("RIWAYAT")
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentTgl)
         }
 
         binding.cardClosingHarian.setOnClickListener {
-            // Arahkan ke list tanggal dengan flag "CLOSING"
             val fragmentTgl = AktivitasPilihTanggalFragment.newInstance("CLOSING")
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentTgl)
         }

@@ -18,7 +18,7 @@ class InputStokGudangActivitygapakai : AppCompatActivity() {
     private lateinit var binding: ActivityInputStokGudangBinding
     private lateinit var mFirestore: FirebaseFirestore
     private var listProductMaster = ArrayList<Product>()
-    private val petaInputJumlah = HashMap<String, Long>() // Menyimpan id_produk -> jumlah_input
+    private val petaInputJumlah = HashMap<String, Long>()
     private lateinit var mAdapter: InputAdapter
     private var tanggalTarget = ""
 
@@ -51,7 +51,6 @@ class InputStokGudangActivitygapakai : AppCompatActivity() {
     }
 
     private fun muatMasterProductTersedia() {
-        // PERBAIKAN AKADEMIK: Mengikuti spesifikasi Koleksi 2 (products) -> status_tersedia
         mFirestore.collection("products")
             .whereEqualTo("status_tersedia", true)
             .get()
@@ -72,7 +71,6 @@ class InputStokGudangActivitygapakai : AppCompatActivity() {
             return
         }
 
-        // PERBAIKAN UTAMA: Targetkan ke dokumen tunggal YYYYMMDD sesuai rancangan database NoSQL Anda
         val refDocGudang = mFirestore.collection("stok_gudang").document(cleanedTanggalId)
         val updates = HashMap<String, Any>()
 
@@ -83,7 +81,6 @@ class InputStokGudangActivitygapakai : AppCompatActivity() {
         for (prod in listProductMaster) {
             val jmlInput = petaInputJumlah[prod.id_produk] ?: 0L
             if (jmlInput > 0L) {
-                // Susun sub-map bertingkat ke dalam field tunggal detail_gudang.[id_produk]
                 updates["detail_gudang.${prod.id_produk}.id_produk"] = prod.id_produk
                 updates["detail_gudang.${prod.id_produk}.nama_produk"] = prod.nama_produk
                 updates["detail_gudang.${prod.id_produk}.harga_jual"] = prod.harga_jual
@@ -94,7 +91,6 @@ class InputStokGudangActivitygapakai : AppCompatActivity() {
             }
         }
 
-        // Simpan menggunakan gabungan SetOptions agar tidak menghapus item kustom siang hari
         refDocGudang.set(updates, SetOptions.merge())
             .addOnSuccessListener {
                 Toast.makeText(this, "Stok produksi $tanggalTarget berhasil disatukan di gudang!", Toast.LENGTH_SHORT).show()

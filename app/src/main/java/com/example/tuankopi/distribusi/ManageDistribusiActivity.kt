@@ -22,7 +22,6 @@ class ManageDistribusiActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Gunakan binding khusus untuk layout Manage Distribusi
         binding = ActivityManageDistribusiBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -30,7 +29,6 @@ class ManageDistribusiActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Pilih Tanggal Distribusi"
 
-        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar
         ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(0, insets.top, 0, 0)

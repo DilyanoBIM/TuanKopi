@@ -43,7 +43,6 @@ class RiderDetailKonfirmasiFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
-        // Fungsi Tombol Kembali menuju Daftar Tanggal Logistik
         binding.btnBackDetail.setOnClickListener {
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderKonfirmasiStokFragment())
         }
@@ -189,7 +188,6 @@ class RiderDetailKonfirmasiFragment : Fragment() {
 
         binding.tvStatusKunciStok.visibility = View.GONE
 
-        // Tampilkan tombol final hanya jika semua item sudah diklik "Sesuai"
         if (jumlahSudahPilih == totalItem) {
             binding.btnTerimaStokFinal.visibility = View.VISIBLE
         } else {

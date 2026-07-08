@@ -16,7 +16,6 @@ class DataMasterFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentDataMasterBinding.inflate(inflater, container, false)
 
-        // Kelola Rider mengarah ke halaman kelola list rider buatan kita kemarin
         binding.cardManageRider.setOnClickListener {
             startActivity(Intent(requireActivity(), ManageRiderActivity::class.java))
         }

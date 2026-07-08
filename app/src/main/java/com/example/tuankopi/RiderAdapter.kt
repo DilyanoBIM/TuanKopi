@@ -24,16 +24,13 @@ class RiderAdapter(
             tvNamaItem.text = rider.nama
             tvEmailItem.text = rider.email
 
-            // Atur posisi switch tanpa memicu listener saat pertama kali dimuat
             switchStatus.setOnCheckedChangeListener(null)
             switchStatus.isChecked = rider.status_akun
 
-            // Listener ketika Switch diklik oleh Owner
             switchStatus.setOnCheckedChangeListener { _, isChecked ->
                 onStatusChanged(rider.uid, isChecked)
             }
 
-            // Listener ketika seluruh baris item diklik (Detail)
             root.setOnClickListener {
                 onItemClick(rider)
             }

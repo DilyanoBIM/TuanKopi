@@ -21,12 +21,10 @@ class ManageProductActivity : AppCompatActivity() {
         binding = ActivityManageProductBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan
         setSupportActionBar(binding.customToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Katalog Produk Master"
 
-        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
         ViewCompat.setOnApplyWindowInsetsListener(binding.customToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(0, insets.top, 0, 0)

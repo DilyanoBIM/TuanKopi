@@ -191,10 +191,8 @@ class RiderKasirFragment : Fragment() {
         val orderIdRandom = "TK-${tanggalHariIni.replace("-", "")}-$timeStampInvoice"
 
         if (metodePembayaran == "TUNAI") {
-            // Logika TUNAI: Tetap menggunakan transaksi lokal langsung sukses
             prosesTransaksiTunaiLokal(orderIdRandom, listItemDibeli)
         } else {
-            // Logika QRIS: Tembak ke API PHP Backend (Status awal: PENDING)
             prosesTransaksiQrisViaBackend(orderIdRandom, listItemDibeli)
         }
     }
@@ -336,7 +334,6 @@ class RiderKasirFragment : Fragment() {
 
                             if (qrisUrlRaw.isNotEmpty()) {
                                 binding.root.postDelayed({
-                                    // Memanggil fungsi tanpa parameter yang tidak terpakai
                                     val dialog = tampilkanDialogQRISTester(qrisUrlRaw)
 
                                     if (dialog != null) {
@@ -359,8 +356,6 @@ class RiderKasirFragment : Fragment() {
         })
     }
 
-    // Menghapus parameter urlSimulatorLengkap yang tidak digunakan
-    // Ganti fungsi tampilkanDialogQRISTester di dalam RiderKasirFragment.kt dengan versi ringkas ini:
     private fun tampilkanDialogQRISTester(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
         val contextLayout = context ?: return null
 
@@ -370,7 +365,6 @@ class RiderKasirFragment : Fragment() {
             gravity = android.view.Gravity.CENTER_HORIZONTAL
         }
 
-        // Menggunakan WebView untuk merender URL image QRIS langsung dari server Midtrans
         val webViewQris = android.webkit.WebView(contextLayout).apply {
             layoutParams = android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
@@ -378,7 +372,7 @@ class RiderKasirFragment : Fragment() {
             )
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
-            settings.javaScriptEnabled = true // Tambahan opsional untuk stabilitas render WebView
+            settings.javaScriptEnabled = true
             loadUrl(urlGambarQris)
         }
 
@@ -406,7 +400,6 @@ class RiderKasirFragment : Fragment() {
     private fun tampilkanDialogQRIS(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
         val contextLayout = context ?: return null
 
-        // Buat WebView secara dinamis
         val webView = android.webkit.WebView(contextLayout).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -417,7 +410,6 @@ class RiderKasirFragment : Fragment() {
             loadUrl(urlGambarQris)
         }
 
-        // Bangun dialog dan simpan ke dalam variabel
         val dialog = androidx.appcompat.app.AlertDialog.Builder(contextLayout)
             .setTitle("Scan Pembayaran QRIS")
             .setMessage("Silakan tunjukkan QR Code ini kepada pelanggan.")

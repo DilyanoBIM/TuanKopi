@@ -16,7 +16,6 @@ class LogistikFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLogistikBinding.inflate(inflater, container, false)
 
-        // Hubungkan ke halaman manajemen riwayat stok gudang
         binding.cardStokGudang.setOnClickListener {
             val intent = Intent(requireActivity(), ManageStokGudangActivity::class.java)
             startActivity(intent)

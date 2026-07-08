@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentAuditProfitBinding
 import com.example.tuankopi.ownervalidasi.ValidasiListFragment
-import com.example.tuankopi.riwayat.RiwayatPenjualanFragment // Import Fragment baru
+import com.example.tuankopi.riwayat.RiwayatPenjualanFragment
 
 class AuditProfitFragment : Fragment() {
     private var _binding: FragmentAuditProfitBinding? = null
@@ -16,7 +16,6 @@ class AuditProfitFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAuditProfitBinding.inflate(inflater, container, false)
 
-        // Buka Riwayat Penjualan
         binding.cardRiwayatPenjualan.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, RiwayatPenjualanFragment())

@@ -71,7 +71,6 @@ class HomeFragment : Fragment() {
 
         val tanggalHariIni = sdf.format(cal.time)
 
-        // Setup batas waktu awal minggu ini (Senin)
         val calMinggu = Calendar.getInstance().apply {
             set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
             set(Calendar.HOUR_OF_DAY, 0)
@@ -80,7 +79,6 @@ class HomeFragment : Fragment() {
         }
         val waktuMulaiMinggu = calMinggu.time
 
-        // Setup batas waktu awal bulan ini
         val calBulan = Calendar.getInstance().apply {
             set(Calendar.DAY_OF_MONTH, 1)
             set(Calendar.HOUR_OF_DAY, 0)
@@ -89,7 +87,6 @@ class HomeFragment : Fragment() {
         }
         val waktuMulaiBulan = calBulan.time
 
-        // Realtime Listener pada koleksi transactions untuk omset, metode bayar, dan live ranking
         val regTransactions = mFirestore.collection("transactions")
             .whereEqualTo("status_pembayaran", "SUCCESS")
             .addSnapshotListener { snapshots, error ->
@@ -114,7 +111,6 @@ class HomeFragment : Fragment() {
                     if (waktuTransaksi != null) {
                         val tanggalTransStr = sdf.format(waktuTransaksi)
 
-                        // 1. Validasi Harian
                         if (tanggalTransStr == tanggalHariIni) {
                             omsetHariIni += totalHarga
                             if (metodePembayaran == "QRIS") {
@@ -123,28 +119,23 @@ class HomeFragment : Fragment() {
                                 totalTunaiHariIni += totalHarga.toFloat()
                             }
 
-                            // Akumulasi ranking rider harian
                             petaRankingRider[namaRider] = (petaRankingRider[namaRider] ?: 0.0) + totalHarga
                         }
 
-                        // 2. Validasi Mingguan
                         if (waktuTransaksi.after(waktuMulaiMinggu) || tanggalTransStr == sdf.format(waktuMulaiMinggu)) {
                             omsetMingguIni += totalHarga
                         }
 
-                        // 3. Validasi Bulanan
                         if (waktuTransaksi.after(waktuMulaiBulan) || tanggalTransStr == sdf.format(waktuMulaiBulan)) {
                             omsetBulanIni += totalHarga
                         }
                     }
 
-                    // Bar Chart mengambil data list transaksi sukses berjalan
                     entriBarChart.add(BarEntry(idx.toFloat(), totalHarga.toFloat()))
                 }
 
                 if (!isAdded) return@addSnapshotListener
 
-                // Render komponen ke layout
                 binding.tvOmsetHarian.text   = formatRupiah(omsetHariIni)
                 binding.tvOmsetMingguan.text = formatRupiah(omsetMingguIni)
                 binding.tvOmsetBulanan.text  = formatRupiah(omsetBulanIni)
@@ -153,7 +144,6 @@ class HomeFragment : Fragment() {
                 susunTabelLiveRankingRider(petaRankingRider)
                 tampilkanBarChartTrenPenjualan(entriBarChart)
 
-                // Kalkulasi laba bersih setelah omset hari ini siap
                 hitungLabaBersih(omsetHariIni, tanggalHariIni)
             }
         listeners.add(regTransactions)
@@ -170,7 +160,6 @@ class HomeFragment : Fragment() {
                     totalPengeluaranField += doc.getLong("nominal")?.toDouble() ?: 0.0
                 }
 
-                // Formula: Laba Kotor - Estimasi HPP 40% - Pengeluaran Lapangan Terduga
                 val labaBersihFinal = omsetHariIni - (omsetHariIni * 0.4) - totalPengeluaranField
                 if (isAdded) binding.tvLabaBersih.text = formatRupiah(labaBersihFinal)
             }
@@ -288,7 +277,6 @@ class HomeFragment : Fragment() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
 
-                // Badge rank
                 addView(TextView(ctx).apply {
                     layoutParams = LinearLayout.LayoutParams(dp(ctx, 36), dp(ctx, 36))
                     text     = urutan.toString()
@@ -299,7 +287,6 @@ class HomeFragment : Fragment() {
                     gravity  = android.view.Gravity.CENTER
                 })
 
-                // Nama rider
                 addView(TextView(ctx).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
@@ -310,7 +297,6 @@ class HomeFragment : Fragment() {
                     setTextColor(Color.parseColor("#191C1E"))
                 })
 
-                // Total omset
                 addView(TextView(ctx).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -324,7 +310,6 @@ class HomeFragment : Fragment() {
             }
             binding.containerRankingRider.addView(baris)
 
-            // Divider
             if (urutan < daftarUrut.size) {
                 binding.containerRankingRider.addView(View(ctx).apply {
                     layoutParams = LinearLayout.LayoutParams(

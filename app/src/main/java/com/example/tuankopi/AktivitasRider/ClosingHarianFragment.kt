@@ -101,8 +101,6 @@ class ClosingHarianFragment : Fragment() {
 
                     tampilkanLayarStatusClosing(statusValidasi, fisikDisetor, catatanOwner)
                 } else {
-                    // Jika data belum dilaporkan sama sekali ke Firestore oleh Rider,
-                    // kita reset teks status ke default awal
                     binding.tvInfoFisikTerkirim.text = "Total Setoran Diserahkan: Rp 0"
                     binding.tvStatusValidasi.text = "BELUM MELAPORKAN PENJUALAN"
                     binding.tvStatusValidasi.setTextColor(Color.GRAY)
@@ -111,7 +109,6 @@ class ClosingHarianFragment : Fragment() {
     }
 
     private fun tampilkanLayarStatusClosing(statusValidasi: String, fisikDisetor: Long, catatanOwner: String) {
-        // Baris visibilitas dihapus karena sudah di-handle langsung oleh tata letak XML secara permanen
 
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
         binding.tvInfoFisikTerkirim.text = "Total Setoran Diserahkan: ${fmtRp.format(fisikDisetor).replace(",00", "")}"
@@ -156,7 +153,6 @@ class ClosingHarianFragment : Fragment() {
                 }
             }
 
-        // PERBAIKAN: Parsing tanggalTarget secara presisi agar rentang pencarian aman
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val dateTarget = try { sdf.parse(tanggalTarget) } catch (e: Exception) { null } ?: return
 

@@ -47,7 +47,6 @@ class AktivitasPilihTanggalFragment : Fragment() {
 
         modeTujuan = arguments?.getString("MODE") ?: "RIWAYAT"
 
-        // Sesuaikan Header
         val activity = activity as? RiderDashboardActivity
         activity?.setSupportActionBar(binding.customToolbar)
         activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -83,8 +82,6 @@ class AktivitasPilihTanggalFragment : Fragment() {
         var query = mFirestore.collection("stok_harian")
             .whereEqualTo("id_rider", uidRider)
 
-        // Jika mode CLOSING, pastikan Rider sudah menyelesaikan jualan di jalan.
-        // Kita JANGAN filter status_stok = AKTIF, agar riwayat yang sudah CLOSED di masa lalu tetap bisa dilihat.
         if (modeTujuan == "CLOSING") {
             query = query.whereEqualTo("status_jualan", "SELESAI JUALAN")
         }

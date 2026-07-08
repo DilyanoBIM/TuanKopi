@@ -26,24 +26,19 @@ class RiderDashboardActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
 
-        // 1. Setup Toolbar Custom untuk menggantikan Action Bar bawaan
         setSupportActionBar(binding.riderToolbar)
         supportActionBar?.title = "Tuan Kopi - Rider"
 
-        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
         ViewCompat.setOnApplyWindowInsetsListener(binding.riderToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            // Mengatur padding atas Toolbar sesuai tinggi Status Bar perangkat
             view.setPadding(0, insets.top, 0, 0)
             windowInsets
         }
 
-        // Setel Fragment pertama kali muncul (RiderDashboardFragment)
         if (savedInstanceState == null) {
             gantiRiderFragment(RiderDashboardFragment())
         }
 
-        // Logika Klik Menu Bottom Navigation Bar Rider
         binding.riderBottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_rider_dashboard -> {
@@ -67,24 +62,16 @@ class RiderDashboardActivity : AppCompatActivity() {
         }
     }
 
-    // Fungsi utilitas untuk mengganti fragment secara modular
     fun gantiRiderFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.rider_fragment_container, fragment)
             .commit()
     }
-
-    // ────────────────────────────────────────────────────────────────────────
-    // LOGIKA OPERASI LOGOUT MELALUI STANDAR OPTION MENU TOOLBAR RIDER
-    // ────────────────────────────────────────────────────────────────────────
-
-    // Menginflasi menu_rider_top ke dalam Toolbar melalui standar Lifecycle Activity
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_rider_top, menu)
         return true
     }
 
-    // Menangani aksi klik pada item menu logout di Toolbar secara stabil
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_rider_logout -> {
@@ -100,12 +87,11 @@ class RiderDashboardActivity : AppCompatActivity() {
             .setTitle("Konfirmasi Keluar")
             .setMessage("Apakah Anda yakin ingin keluar dari akun Rider?")
             .setPositiveButton("Logout") { _, _ ->
-                // 1. Putus sesi Firebase Auth
+
                 mAuth.signOut()
 
                 Toast.makeText(this, "Berhasil keluar dari akun Rider", Toast.LENGTH_SHORT).show()
 
-                // 2. Bersihkan backstack dan tendang balik ke LoginActivity
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)

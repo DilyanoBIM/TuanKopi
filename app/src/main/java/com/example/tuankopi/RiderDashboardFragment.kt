@@ -40,7 +40,6 @@ class RiderDashboardFragment : Fragment() {
     private var totalTunaiOmsetHariIni = 0f
     private var totalQrisOmsetHariIni = 0f
 
-    // Map penampung jatah awal dan total distribusi harian murni dari stok_harian
     private val petaStokAwalKomoditas = HashMap<String, Long>()
     private val petaNamaProdukLokal = HashMap<String, String>()
 
@@ -82,7 +81,6 @@ class RiderDashboardFragment : Fragment() {
         val cleanTgl = tanggalHariIni.replace("-", "")
         val docIdStok = "${cleanTgl}_$uidRider"
 
-        // 1. LISTENER KOLEKSI 1: stok_harian (Murni memantau status jualan, modal kembalian, dan jatah kuota awal)
         val lrStok = mFirestore.collection("stok_harian").document(docIdStok)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || !isAdded) return@addSnapshotListener
@@ -119,12 +117,10 @@ class RiderDashboardFragment : Fragment() {
                     }
                 }
 
-                // Memicu perhitungan ulang kuantitas produk menggunakan basis jatah terbaru yang telah dimuat
                 pemicuKalkulasiUlangKuantitasStokLive()
             }
         listeners.add(lrStok)
 
-        // 2. LISTENER KOLEKSI 2: transactions (Live agregasi finansial, chart metode pembayaran, dan real terjual murni SUCCESS)
         val lrTransactions = mFirestore.collection("transactions")
             .whereEqualTo("id_rider", uidRider)
             .whereEqualTo("status_pembayaran", "SUCCESS")
@@ -134,7 +130,6 @@ class RiderDashboardFragment : Fragment() {
                 var totalTunai = 0f
                 var totalQris = 0f
 
-                // Peta penampung akumulasi produk terjual riil (id_produk -> total_qty_terjual)
                 val petaKuantitasTerjualRealtime = HashMap<String, Long>()
 
                 for (doc in snapshot.documents) {
@@ -144,14 +139,12 @@ class RiderDashboardFragment : Fragment() {
                         if (fmt != tanggalHariIni) continue
                     }
 
-                    // Ambil nominal keuangan transaksi
                     val metode = doc.getString("metode_pembayaran") ?: ""
                     val totalHarga = doc.getLong("total_harga")?.toFloat() ?: 0f
 
                     if (metode == "TUNAI") totalTunai += totalHarga
                     else if (metode == "QRIS") totalQris += totalHarga
 
-                    // Ekstraksi data produk terlaris dari array "items" di dalam transaksi sukses
                     val arrayItems = doc.get("items") as? List<*>
                     if (arrayItems != null) {
                         for (itemObj in arrayItems) {
@@ -172,14 +165,12 @@ class RiderDashboardFragment : Fragment() {
                 updateTampilanUangLaciFisikLive()
                 tampilkanPieChartPendapatan(totalTunai, totalQris)
 
-                // Kalkulasi sisa lapangan dan peringkat produk menggunakan data riil transaksi SUCCESS
                 kalkulasiSaringanProdukDashboardLive(petaKuantitasTerjualRealtime)
             }
         listeners.add(lrTransactions)
     }
 
     private fun pemicuKalkulasiUlangKuantitasStokLive() {
-        // Fungsi pembantu jika snapshot stok_harian berubah duluan sebelum ada transaksi baru
         kalkulasiSaringanProdukDashboardLive(HashMap())
     }
 
@@ -193,7 +184,6 @@ class RiderDashboardFragment : Fragment() {
         val petaRankingUntukTabel = HashMap<String, Long>()
         val petaSisaUntukTabel = HashMap<String, Long>()
 
-        // Iterasi seluruh jatah awal produk yang ada di motor untuk disinkronkan dengan total transaksi sukses
         for ((idProd, qtyAwalTotal) in petaStokAwalKomoditas) {
             val namaProduk = petaNamaProdukLokal[idProd] ?: "Menu"
             val qtyTerjualRiil = petaTerjualRealtime[idProd] ?: 0L
@@ -207,7 +197,6 @@ class RiderDashboardFragment : Fragment() {
             petaSisaUntukTabel[namaProduk] = qtySisaRiil
         }
 
-        // Tampilkan agregasi kumulatif ke dalam widget panel ringkasan atas
         binding.tvTotalStokBawaan.text = totalStokKumulatif.toString()
         binding.tvTotalStokTerjual.text = totalTerjualKumulatif.toString()
         binding.tvTotalStokSisa.text = totalSisaKumulatif.toString()
@@ -244,7 +233,6 @@ class RiderDashboardFragment : Fragment() {
             return
         }
 
-        // Urutkan produk berdasarkan jumlah kuantitas yang paling banyak terjual hari ini
         val daftarUrut = petaRanking.toList().sortedByDescending { it.second }
 
         daftarUrut.forEachIndexed { index, pair ->

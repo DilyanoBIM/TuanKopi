@@ -18,7 +18,6 @@ class PieChartMarkerView(
     private val tvContent: TextView = findViewById(android.R.id.text1)
 
     init {
-        // Background putih bersih dengan teks HITAM PEKAT agar terbaca kontras
         tvContent.setBackgroundColor(android.graphics.Color.parseColor("#F8F9FB"))
         tvContent.setTextColor(android.graphics.Color.parseColor("#191C1E"))
         tvContent.textSize = 12f

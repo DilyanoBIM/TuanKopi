@@ -38,7 +38,6 @@ class ValidasiListFragment : Fragment() {
     }
 
     private fun loadSeluruhDataClosing() {
-        // IMPROVISASI: Ambil semua data tanpa filter PENDING agar riwayat lama bisa diaudit ulang
         mFirestore.collection("closing_laporan")
             .orderBy("tanggal", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
@@ -53,7 +52,6 @@ class ValidasiListFragment : Fragment() {
             binding.btnBackMode.visibility = View.GONE
             binding.tvHeaderList.text = "Pilih Tanggal Closing"
 
-            // Ambil daftar tanggal unik
             val listTanggalUnique = masterClosingList.map { it.tanggal }.distinct()
 
             binding.rvValidasi.adapter = ValidasiAdapter(listTanggalUnique, isModeTanggal = true) { item ->
@@ -65,7 +63,6 @@ class ValidasiListFragment : Fragment() {
             binding.btnBackMode.visibility = View.VISIBLE
             binding.tvHeaderList.text = "Rider pada Tanggal $selectedTanggal"
 
-            // Filter rider yang memiliki data closing di tanggal terpilih
             val listRiderBerdasarkanTanggal = masterClosingList.filter { it.tanggal == selectedTanggal }
 
             binding.rvValidasi.adapter = ValidasiAdapter(listRiderBerdasarkanTanggal, isModeTanggal = false) { item ->
@@ -112,7 +109,6 @@ class ValidasiListFragment : Fragment() {
                 holder.binding.tvNamaRider.text = "Fisik Diserahkan: Rp ${item.uang_tunai_fisik}"
                 holder.binding.tvStatusValidasi.visibility = View.VISIBLE
 
-                // Set warna label status list berdasarkan isi data pembukuan harian
                 when(item.status_validasi) {
                     "PENDING" -> {
                         holder.binding.tvStatusValidasi.text = "⏳ PENDING AUDIT"

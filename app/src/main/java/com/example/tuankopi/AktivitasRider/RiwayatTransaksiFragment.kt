@@ -124,7 +124,6 @@ class RiwayatTransaksiFragment : Fragment() {
 
         if (currentFilter == "Semua") {
             filteredList.addAll(rawTransactionList)
-            // Kalkulasi omset hanya untuk yang SUCCESS
             totalOmset = rawTransactionList.filter { it["status_pembayaran"].toString().uppercase() == "SUCCESS" }
                 .sumOf { it["total_harga"] as? Long ?: 0L }
         } else {
@@ -135,14 +134,12 @@ class RiwayatTransaksiFragment : Fragment() {
                 metode == filterKata || status == filterKata
             })
 
-            // Kalkulasi omset berdasarkan filter
             totalOmset = filteredList.filter { it["status_pembayaran"].toString().uppercase() == "SUCCESS" }
                 .sumOf { it["total_harga"] as? Long ?: 0L }
         }
 
         mAdapter.notifyDataSetChanged()
 
-        // Update UI Dashboard Rangkuman
         val fmtRp = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
         binding.tvRingkasanTotal.text = fmtRp.format(totalOmset).replace(",00", "")
         binding.tvRingkasanQty.text = "${filteredList.size} Transaksi"

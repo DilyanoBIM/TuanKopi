@@ -48,7 +48,6 @@ class RiderStokAktifFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
-        // Fungsi Tombol Kembali menuju Menu Utama Stok Rider
         binding.btnBack.setOnClickListener {
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderStokFragment())
         }

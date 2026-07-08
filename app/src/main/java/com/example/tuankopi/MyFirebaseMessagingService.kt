@@ -20,7 +20,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Memeriksa keberadaan Payload Data Khusus transaksi dari backend PHP
         if (remoteMessage.data.isNotEmpty()) {
             val orderId = remoteMessage.data["order_id"] ?: ""
             val namaRider = remoteMessage.data["nama_rider"] ?: "Rider"
@@ -29,7 +28,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             Log.d("FCM_TRANSAKSI_MASUK", "ID Pesanan: $orderId, Oleh: $namaRider, Total: Rp $totalHarga")
 
-            // Contoh Ekstraksi Array Items dari payload data
             try {
                 val jsonArray = JSONArray(rawItemsJson)
                 for (i in 0 until jsonArray.length()) {
@@ -43,7 +41,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 Log.e("FCM_PARSING_ERROR", "Gagal membaca detail item transaksi", e)
             }
 
-            // Tampilkan push notification di laci sistem perangkat Owner
             tampilkanNotifikasiKeOwner(orderId, namaRider, totalHarga)
         }
     }
@@ -51,7 +48,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun tampilkanNotifikasiKeOwner(orderId: String, namaRider: String, totalHarga: Long) {
         val intent = Intent(this, OwnerDashboardActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("TARGET_ORDER_ID", orderId) // Membuka detail transaksi langsung jika diklik
+            putExtra("TARGET_ORDER_ID", orderId)
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -64,7 +61,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val channelId = "SALURAN_OMSET_OWNER"
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_stars) // Ganti sesuai aset drawable ikon Anda
+            .setSmallIcon(R.drawable.ic_stars)
             .setContentTitle("Transaksi QRIS Sukses! 🎉")
             .setContentText("Rider $namaRider berhasil menjual kopi senilai $totalFormatted")
             .setStyle(NotificationCompat.BigTextStyle().bigText(

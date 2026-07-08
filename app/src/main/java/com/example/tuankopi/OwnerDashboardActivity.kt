@@ -30,19 +30,16 @@ class OwnerDashboardActivity : AppCompatActivity() {
         setSupportActionBar(binding.ownerToolbar)
         supportActionBar?.title = "Tuan Kopi - Owner"
 
-        // 2. SOLUSI AMAN: Berikan padding atas dinamis HANYA pada Toolbar agar tidak terpotong Status Bar/Notch
         ViewCompat.setOnApplyWindowInsetsListener(binding.ownerToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(0, insets.top, 0, 0)
             windowInsets
         }
 
-        // Setel Fragment yang pertama kali muncul saat aplikasi dibuka
         if (savedInstanceState == null) {
             gantiFragment(HomeFragment())
         }
 
-        // Logika Klik Penukaran Menu Bottom Navigation Bar
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
@@ -72,17 +69,11 @@ class OwnerDashboardActivity : AppCompatActivity() {
             .commit()
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // LOGIKA OPERASI LOGOUT MELALUI STANDAR OPTION MENU TOOLBAR
-    // ────────────────────────────────────────────────────────────────────────
-
-    // Menginflasi menu_owner_dashboard ke dalam Toolbar yang sudah di-setSupportActionBar
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_owner_dashboard, menu)
         return true
     }
 
-    // Menangani aksi klik pada item menu di Toolbar secara valid dan stabil
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
@@ -98,12 +89,10 @@ class OwnerDashboardActivity : AppCompatActivity() {
             .setTitle("Konfirmasi Keluar")
             .setMessage("Apakah Anda yakin ingin keluar dari akun Owner?")
             .setPositiveButton("Logout") { _, _ ->
-                // 1. Putus sesi Firebase Authentication secara total
                 mAuth.signOut()
 
                 Toast.makeText(this, "Berhasil keluar dari sistem", Toast.LENGTH_SHORT).show()
 
-                // 2. Tendang balik ke halaman LoginActivity dan bersihkan backstack
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)

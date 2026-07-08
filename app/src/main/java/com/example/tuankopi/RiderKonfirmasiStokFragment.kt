@@ -31,7 +31,6 @@ class RiderKonfirmasiStokFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
-        // Fungsi Tombol Kembali menuju Beranda Rider
         binding.btnBack.setOnClickListener {
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderDashboardFragment())
         }
