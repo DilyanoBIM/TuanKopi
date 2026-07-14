@@ -6,14 +6,12 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- BUNGKUS DENGAN APPBARLAYOUT UNTUK MEMBERIKAN RUANG LEBIH LUAS KE BAWAH -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="#3E2723"
+        android:background="#6200EE"
         app:elevation="4dp">
 
-        <!-- TOP NAVIGATION TOOLBAR KELOLA RIDER -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/custom_toolbar"
             android:layout_width="match_parent"
@@ -31,9 +29,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Daftar Rider Tuan Kopi"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#3E2723"
+            android:textColor="#212121"
             android:layout_margin="16dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -51,7 +49,7 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_margin="24dp"
-            android:backgroundTint="#3E2723"
+            android:backgroundTint="#6200EE"
             app:tint="#FFFFFF"
             android:contentDescription="Tambah Rider"
             app:srcCompat="@android:drawable/ic_input_add" />

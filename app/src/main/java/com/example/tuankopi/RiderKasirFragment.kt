@@ -8,7 +8,10 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +31,7 @@ import java.util.Locale
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
+// 1. MEMASUKKAN KEMBALI DATA CLASS YANG TERHAPUS (qtyBeli menggunakan VAR agar bisa ++/--)
 data class ProdukKasir(
     val idProduk: String,
     val namaProduk: String,
@@ -236,6 +240,7 @@ class RiderKasirFragment : Fragment() {
 
                 detailStokTerbarui[produk.idProduk] = subMapTerbarui
 
+                // 2. PERBAIKAN TYPO: Mengubah "Guide" menjadi "produk"
                 arrayItemsInvoice.add(hashMapOf(
                     "id_produk" to produk.idProduk,
                     "nama_produk" to produk.namaProduk,
@@ -261,8 +266,7 @@ class RiderKasirFragment : Fragment() {
             transaction.set(refNewTransaction, dataInvoice)
             null
         }.addOnSuccessListener {
-            Toast.makeText(context, "Transaksi Tunai Sukses!", Toast.LENGTH_SHORT).show()
-            kembaliKeDashboard()
+            tampilkanDialogSukses(orderId, "TUNAI", nominalKembalian)
         }.addOnFailureListener { e ->
             binding.btnSimpanTransaksiFinal.isEnabled = true
             Toast.makeText(context, "Gagal: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -291,7 +295,7 @@ class RiderKasirFragment : Fragment() {
             .build()
 
         val request = Request.Builder()
-            .url("https://jovani-galvanic-laura.ngrok-free.dev/midtrans/charge_qris.php")
+            .url("https://squeamish-manila-hardly.ngrok-free.dev/midtrans/charge_qris.php")
             .post(formBody)
             .build()
 
@@ -356,29 +360,38 @@ class RiderKasirFragment : Fragment() {
         })
     }
 
-    private fun tampilkanDialogQRISTester(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
+    private fun tampilkanDialogQRISTester(urlGambarQris: String): AlertDialog? {
         val contextLayout = context ?: return null
 
         val rootContainer = android.widget.LinearLayout(contextLayout).apply {
             orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(32, 32, 32, 32)
+            setPadding(32, 24, 32, 16)
             gravity = android.view.Gravity.CENTER_HORIZONTAL
         }
 
         val webViewQris = android.webkit.WebView(contextLayout).apply {
             layoutParams = android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                600
+                850
             )
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
             settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+
+            webViewClient = object : android.webkit.WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: android.webkit.WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                    val targetUrl = request?.url?.toString() ?: ""
+                    view?.loadUrl(targetUrl)
+                    return true
+                }
+            }
             loadUrl(urlGambarQris)
         }
 
         rootContainer.addView(webViewQris)
 
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(contextLayout)
+        val dialog = AlertDialog.Builder(contextLayout)
             .setTitle("Scan Pembayaran QRIS")
             .setMessage("Tunjukkan QR Code ini ke pelanggan untuk memproses pembayaran.")
             .setView(rootContainer)
@@ -393,50 +406,66 @@ class RiderKasirFragment : Fragment() {
         return dialog
     }
 
-    private fun kembaliKeDashboard() {
-        (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderDashboardFragment())
-    }
-
-    private fun tampilkanDialogQRIS(urlGambarQris: String): androidx.appcompat.app.AlertDialog? {
-        val contextLayout = context ?: return null
-
-        val webView = android.webkit.WebView(contextLayout).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            loadUrl(urlGambarQris)
-        }
-
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(contextLayout)
-            .setTitle("Scan Pembayaran QRIS")
-            .setMessage("Silakan tunjukkan QR Code ini kepada pelanggan.")
-            .setView(webView)
-            .setCancelable(false)
-            .setPositiveButton("Batal Transaksi") { dialogInterface, _ ->
-                dialogInterface.dismiss()
-                binding.btnSimpanTransaksiFinal.isEnabled = true
-            }
-            .create()
-
-        dialog.show()
-        return dialog
-    }
-
-    private fun pasangRealtimeListenerTransaksi(orderId: String, dialogPembayaran: androidx.appcompat.app.AlertDialog) {
+    private fun pasangRealtimeListenerTransaksi(orderId: String, dialogPembayaran: AlertDialog) {
         mFirestore.collection("transactions").document(orderId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
 
                 val status = snapshot.getString("status_pembayaran") ?: "PENDING"
                 if (status == "SUCCESS") {
-                    Toast.makeText(context, "Pembayaran QRIS Sukses Diterima!", Toast.LENGTH_SHORT).show()
                     dialogPembayaran.dismiss()
-                    kembaliKeDashboard()
+                    tampilkanDialogSukses(orderId, "QRIS DIGITAL", 0L)
                 }
             }
+    }
+
+    private fun tampilkanDialogSukses(orderId: String, metode: String, kembalian: Long) {
+        if (context == null) return
+
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_transaksi_sukses, null)
+
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+
+        val tvOrderId = dialogView.findViewById<TextView>(R.id.tvDialogOrderId)
+        val tvTotal = dialogView.findViewById<TextView>(R.id.tvDialogTotalBelanja)
+        val tvMetode = dialogView.findViewById<TextView>(R.id.tvDialogMetode)
+        val tvKembalian = dialogView.findViewById<TextView>(R.id.tvDialogKembalian)
+        val btnSelesai = dialogView.findViewById<Button>(R.id.btnDialogSelesai)
+
+        tvOrderId.text = "Order ID: $orderId"
+        val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        tvTotal.text = "Total Belanja: ${formatter.format(totalBelanjaGross).replace(",00", "")}"
+        tvMetode.text = "Metode: $metode"
+
+        if (metode == "TUNAI") {
+            tvKembalian.visibility = View.VISIBLE
+            tvKembalian.text = "Kembalian: ${formatter.format(kembalian).replace(",00", "")}"
+        } else {
+            tvKembalian.visibility = View.GONE
+        }
+
+        btnSelesai.setOnClickListener {
+            dialog.dismiss()
+            resetKasirDanMuatUlang()
+        }
+
+        dialog.show()
+    }
+
+    private fun resetKasirDanMuatUlang() {
+        binding.etUangBayarTunai.setText("")
+        binding.rgMetodePembayaran.check(R.id.rbBayarTunai)
+        binding.btnSimpanTransaksiFinal.isEnabled = true
+
+        validasiKeaktifanKasirDanMuatMenu()
+
+        totalBelanjaGross = 0L
+        kalkulasiUlangTotalKeranjang()
     }
 
     override fun onDestroyView() {

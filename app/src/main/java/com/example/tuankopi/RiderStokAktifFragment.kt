@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 data class ItemTanggalDokumen(
@@ -60,6 +61,7 @@ class RiderStokAktifFragment : Fragment() {
 
     private fun setupRecyclerView() {
         mAdapter = TanggalAdapter(listTanggal) { item ->
+            // Data asli yang dikirim tetap item.tanggal (YYYY-MM-DD)
             val fragmentDetail = RiderStokDetailFragment.newInstance(item.docId, item.tanggal, item.modalKembalian)
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentDetail)
         }
@@ -130,6 +132,19 @@ class RiderStokAktifFragment : Fragment() {
             }
     }
 
+    // Fungsi format tanggal ditambahkan ke sini
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            if (tanggal == "Unknown") return tanggal
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -147,9 +162,11 @@ class RiderStokAktifFragment : Fragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = data[position]
-            holder.b.tvRiwayatTglDokumen.text = item.tanggal
-            holder.b.tvRiwayatStatusStok.text = item.statusStok
 
+            // Format yang ditampilkan di list menggunakan bahasa Indonesia
+            holder.b.tvRiwayatTglDokumen.text = formatKeTanggalIndo(item.tanggal)
+
+            holder.b.tvRiwayatStatusStok.text = item.statusStok
             holder.b.tvRiwayatStatusStok.setTextColor(Color.parseColor("#2E7D32"))
             holder.b.tvRiwayatStatusStok.setBackgroundColor(Color.parseColor("#E8F5E9"))
 

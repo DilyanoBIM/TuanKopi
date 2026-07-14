@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tuankopi.databinding.FragmentRiderKonfirmasiStokBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class RiderKonfirmasiStokFragment : Fragment() {
 
@@ -45,7 +47,7 @@ class RiderKonfirmasiStokFragment : Fragment() {
         mAdapter = TanggalRiderAdapter(listTanggal) { tglTerpilih ->
             val fragmentDetail = RiderDetailKonfirmasiFragment().apply {
                 arguments = Bundle().apply {
-                    putString("KEY_TANGGAL", tglTerpilih)
+                    putString("KEY_TANGGAL", tglTerpilih) // Mengirim format asli (YYYY-MM-DD)
                 }
             }
             (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragmentDetail)
@@ -78,6 +80,18 @@ class RiderKonfirmasiStokFragment : Fragment() {
             }
     }
 
+    // Fungsi format tanggal ditambahkan ke sini
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -98,8 +112,12 @@ class RiderKonfirmasiStokFragment : Fragment() {
         }
 
         override fun onBindViewHolder(vh: ViewHolder, pos: Int) {
-            vh.textTgl.text = data[pos]
-            vh.view.setOnClickListener { click(data[pos]) }
+            val tanggalAsli = data[pos]
+
+            // Format yang ditampilkan di list menggunakan bahasa indonesia
+            vh.textTgl.text = formatKeTanggalIndo(tanggalAsli)
+
+            vh.view.setOnClickListener { click(tanggalAsli) }
         }
 
         override fun getItemCount(): Int = data.size

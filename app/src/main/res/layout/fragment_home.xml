@@ -36,6 +36,17 @@
                 android:textSize="14sp"
                 android:textColor="#757682"
                 android:layout_marginTop="2dp"/>
+
+            <!-- Informasi Hari Ini (NOW) ditambahkan di sini -->
+            <TextView
+                android:id="@+id/tvTanggalHariIni"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sabtu, 11 Juli 2026"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#00236F"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
 
         <!-- ======== KARTU OMSET HARIAN ======== -->
@@ -250,71 +261,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- ======== TREN PENJUALAN REAL-TIME ======== -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="1dp"
-            app:cardBackgroundColor="#FFFFFF">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Header: Title + Toggle -->
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:text="Tren Penjualan\nReal-time"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#191C1E"/>
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:orientation="horizontal"
-                        android:background="@drawable/bg_toggle_group"
-                        android:padding="2dp">
-                        <TextView
-                            android:id="@+id/btnHourly"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Hourly"
-                            android:textSize="12sp"
-                            android:textColor="#00236F"
-                            android:background="@drawable/bg_toggle_selected"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="4dp"/>
-                        <TextView
-                            android:id="@+id/btnDaily"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Daily"
-                            android:textSize="12sp"
-                            android:textColor="#757682"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="4dp"/>
-                    </LinearLayout>
-                </RelativeLayout>
-
-                <!-- Bar Chart -->
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/barChartTren"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"/>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        <!-- (Kartu Tren Penjualan Real-Time telah dihapus) -->
 
         <!-- ======== PAYMENT METHOD ======== -->
         <androidx.cardview.widget.CardView
@@ -482,7 +429,6 @@
                 </RelativeLayout>
 
                 <!-- Table Header -->
-                <!-- Cari baris "Table Header" di dalam fragment_home.xml milikmu dan perbarui teksnya -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -509,10 +455,10 @@
                         android:layout_width="90dp"
                         android:layout_height="wrap_content"
                         android:text="Omset"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="#444651"
-                    android:gravity="end"/>
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#444651"
+                        android:gravity="end"/>
                 </LinearLayout>
 
                 <!-- Table Rows Container -->

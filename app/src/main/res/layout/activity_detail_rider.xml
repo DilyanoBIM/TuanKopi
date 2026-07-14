@@ -6,14 +6,12 @@
     android:orientation="vertical"
     android:background="#F5F5F5">
 
-    <!-- BUNGKUS DENGAN APPBARLAYOUT UNTUK MEMBERIKAN RUANG LEBIH LUAS KE BAWAH -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="#3E2723"
+        android:background="#6200EE"
         app:elevation="4dp">
 
-        <!-- TOP NAVIGATION TOOLBAR DETAIL RIDER -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/custom_toolbar"
             android:layout_width="match_parent"
@@ -26,50 +24,72 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Detail Profil Rider"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="#3E2723"
-            android:layout_marginBottom="24dp"/>
-
-        <TextView
-            android:id="@+id/tvDetailNama"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nama: -"
-            android:textSize="18sp"
             android:textColor="#212121"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="16dp"/>
 
-        <TextView
-            android:id="@+id/tvDetailEmail"
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Email: -"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="12dp"/>
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="#FFFFFF">
 
-        <TextView
-            android:id="@+id/tvDetailNoHp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="No HP/WhatsApp: -"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="12dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
 
-        <TextView
-            android:id="@+id/tvDetailUid"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Firebase UID: -"
-            android:textSize="12sp"
-            android:textColor="#9E9E9E" />
+                <TextView
+                    android:id="@+id/tvDetailNama"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nama: -"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:layout_marginBottom="10dp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EEEEEE"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:id="@+id/tvDetailEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Email: -"
+                    android:textSize="15sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:id="@+id/tvDetailNoHp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No HP/WhatsApp: -"
+                    android:textSize="15sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:id="@+id/tvDetailUid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Firebase UID: -"
+                    android:textSize="11sp"
+                    android:textColor="#9E9E9E" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </LinearLayout>

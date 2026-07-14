@@ -54,7 +54,10 @@ class RiwayatTransaksiFragment : Fragment() {
         mAuth = FirebaseAuth.getInstance()
 
         tanggalTarget = arguments?.getString("TANGGAL") ?: ""
-        binding.tvInfoTanggal.text = "Transaksi: $tanggalTarget"
+
+        // Format tanggal sebelum ditampilkan di Header UI
+        val tanggalIndo = formatKeTanggalIndo(tanggalTarget)
+        binding.tvInfoTanggal.text = "Transaksi: $tanggalIndo"
 
         binding.btnBackDetail.setOnClickListener {
             val tglFragment = AktivitasPilihTanggalFragment.newInstance("RIWAYAT")
@@ -63,7 +66,7 @@ class RiwayatTransaksiFragment : Fragment() {
 
         setupRecyclerView()
         setupFilters()
-        fetchRiwayatBerdasarkanTanggal()
+        fetchRiwayatBerdasarkanTanggal() // Tetap menggunakan YYYY-MM-DD
 
         return binding.root
     }
@@ -196,6 +199,18 @@ class RiwayatTransaksiFragment : Fragment() {
             .setView(container)
             .setPositiveButton("Tutup") { dialog, _ -> dialog.dismiss() }
             .show()
+    }
+
+    // Fungsi format tanggal ditambahkan ke sini
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
     }
 
     override fun onDestroyView() {

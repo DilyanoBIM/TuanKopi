@@ -4,15 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="16dp"
     android:background="#F8F9FB">
 
+    <!-- HEADER DISERAGAMKAN SEPERTI STOK -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="#FFFFFF">
+        android:layout_marginBottom="16dp">
 
         <ImageView
             android:id="@+id/btnBackDetail"
@@ -24,22 +25,37 @@
             android:layout_marginEnd="8dp"
             app:tint="#191C1E"/>
 
-        <TextView
-            android:id="@+id/tvInfoTanggal"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Transaksi Tanggal"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#191C1E"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvInfoTanggal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transaksi Tanggal"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Riwayat dan rincian transaksi harian"
+                android:textSize="12sp"
+                android:textColor="#757682"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginBottom="16dp"
         app:cardCornerRadius="12dp"
-        app:cardElevation="2dp">
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#FFFFFF">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,7 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Omset (Sukses)"
-                    android:textColor="#757575"
+                    android:textColor="#757682"
                     android:textSize="12sp"/>
 
                 <TextView
@@ -80,7 +96,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Total Data"
-                    android:textColor="#757575"
+                    android:textColor="#757682"
                     android:textSize="12sp"/>
 
                 <TextView
@@ -98,7 +114,7 @@
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="8dp"
         android:scrollbars="none">
 
         <com.google.android.material.chip.ChipGroup
@@ -151,6 +167,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:text="Tidak ada transaksi yang cocok"
+        android:textColor="#757682"
         android:gravity="center"
         android:visibility="gone"/>
 
@@ -158,6 +175,5 @@
         android:id="@+id/rvRiwayatTransaksi"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingHorizontal="8dp"
         android:clipToPadding="false"/>
 </LinearLayout>

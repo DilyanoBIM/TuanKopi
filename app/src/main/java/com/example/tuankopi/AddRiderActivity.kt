@@ -1,8 +1,12 @@
 package com.example.tuankopi
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -98,6 +102,34 @@ class AddRiderActivity : AppCompatActivity() {
             binding.progressBarAdd.visibility = View.GONE
             binding.btnSimpanRider.visibility = View.VISIBLE
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_owner_dashboard, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> { tampilkanDialogKonfirmasiLogout(); true }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun tampilkanDialogKonfirmasiLogout() {
+        AlertDialog.Builder(this)
+            .setTitle("Konfirmasi Keluar")
+            .setMessage("Apakah Anda yakin ingin keluar dari akun Owner?")
+            .setPositiveButton("Logout") { _, _ ->
+                mAuth.signOut()
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -11,9 +11,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentHomeBinding
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
@@ -43,6 +40,10 @@ class HomeFragment : Fragment() {
         _binding   = FragmentHomeBinding.inflate(inflater, container, false)
         mAuth      = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
+
+        // Menampilkan informasi Hari/Tanggal saat ini (NOW)
+        val sdfIndo = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+        binding.tvTanggalHariIni.text = sdfIndo.format(Calendar.getInstance().time)
 
         muatDataProfilOwner()
         muatAnalitikBisnisRealtime()
@@ -100,9 +101,8 @@ class HomeFragment : Fragment() {
                 var totalQrisHariIni  = 0f
 
                 val petaRankingRider  = HashMap<String, Double>()
-                val entriBarChart     = ArrayList<BarEntry>()
 
-                snapshots.documents.forEachIndexed { idx, doc ->
+                snapshots.documents.forEachIndexed { _, doc ->
                     val totalHarga        = doc.getLong("total_harga")?.toDouble() ?: 0.0
                     val metodePembayaran  = doc.getString("metode_pembayaran") ?: "TUNAI"
                     val namaRider         = doc.getString("nama_rider") ?: "Rider"
@@ -130,8 +130,6 @@ class HomeFragment : Fragment() {
                             omsetBulanIni += totalHarga
                         }
                     }
-
-                    entriBarChart.add(BarEntry(idx.toFloat(), totalHarga.toFloat()))
                 }
 
                 if (!isAdded) return@addSnapshotListener
@@ -142,7 +140,6 @@ class HomeFragment : Fragment() {
 
                 tampilkanPieChartMetodePembayaran(totalTunaiHariIni, totalQrisHariIni)
                 susunTabelLiveRankingRider(petaRankingRider)
-                tampilkanBarChartTrenPenjualan(entriBarChart)
 
                 hitungLabaBersih(omsetHariIni, tanggalHariIni)
             }
@@ -163,35 +160,6 @@ class HomeFragment : Fragment() {
                 val labaBersihFinal = omsetHariIni - (omsetHariIni * 0.4) - totalPengeluaranField
                 if (isAdded) binding.tvLabaBersih.text = formatRupiah(labaBersihFinal)
             }
-    }
-
-    private fun tampilkanBarChartTrenPenjualan(listEntri: ArrayList<BarEntry>) {
-        if (listEntri.isEmpty()) return
-        val dataSet = BarDataSet(listEntri, "").apply {
-            color          = Color.parseColor("#00236F")
-            highLightColor = Color.parseColor("#4B6BCC")
-            valueTextColor = Color.TRANSPARENT
-            valueTextSize  = 0f
-        }
-
-        binding.barChartTren.apply {
-            data = BarData(dataSet).also { it.barWidth = 0.6f }
-            description.isEnabled = false
-            legend.isEnabled      = false
-            setTouchEnabled(false)
-            axisRight.isEnabled   = false
-            axisLeft.apply {
-                setDrawGridLines(true)
-                gridColor      = Color.parseColor("#F3F4F6")
-                setDrawAxisLine(false)
-                textColor      = Color.parseColor("#9CA3AF")
-                textSize       = 10f
-            }
-            xAxis.isEnabled = false
-            setFitBars(true)
-            animateY(500)
-            invalidate()
-        }
     }
 
     private fun tampilkanPieChartMetodePembayaran(tunai: Float, qris: Float) {

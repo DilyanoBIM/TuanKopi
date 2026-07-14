@@ -2,18 +2,23 @@ package com.example.tuankopi
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tuankopi.databinding.ActivityManageRiderBinding
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ManageRiderActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityManageRiderBinding
     private lateinit var mFirestore: FirebaseFirestore
+    private lateinit var mAuth: FirebaseAuth
     private lateinit var adapterRider: RiderAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,10 +37,10 @@ class ManageRiderActivity : AppCompatActivity() {
         }
 
         mFirestore = FirebaseFirestore.getInstance()
+        mAuth = FirebaseAuth.getInstance()
 
         setupRecyclerView()
 
-        // Tombol `+` untuk mendaftarkan Rider baru
         binding.fabAddRider.setOnClickListener {
             startActivity(Intent(this, AddRiderActivity::class.java))
         }
@@ -91,9 +96,36 @@ class ManageRiderActivity : AppCompatActivity() {
             }
     }
 
-    // 3. Fungsi Logika: Menangani ketika tombol panah kembali di bar atas diklik
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_owner_dashboard, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> { tampilkanDialogKonfirmasiLogout(); true }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun tampilkanDialogKonfirmasiLogout() {
+        AlertDialog.Builder(this)
+            .setTitle("Konfirmasi Keluar")
+            .setMessage("Apakah Anda yakin ingin keluar dari akun Owner?")
+            .setPositiveButton("Logout") { _, _ ->
+                mAuth.signOut()
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed() // Menutup halaman ini dan kembali
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 }

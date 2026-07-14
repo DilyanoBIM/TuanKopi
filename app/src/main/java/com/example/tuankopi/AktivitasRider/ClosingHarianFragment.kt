@@ -62,7 +62,8 @@ class ClosingHarianFragment : Fragment() {
         docIdStokTarget = "${cleanTgl}_$uidRider"
         docIdClosing = "${tanggalTarget}_$uidRider"
 
-        binding.tvInfoTanggalClosing.text = "Closing: $tanggalTarget"
+        val tanggalIndo = formatKeTanggalIndo(tanggalTarget)
+        binding.tvInfoTanggalClosing.text = "Closing: $tanggalIndo"
 
         binding.btnBackDetail.setOnClickListener {
             val tglFragment = AktivitasPilihTanggalFragment.newInstance("CLOSING")
@@ -95,6 +96,8 @@ class ClosingHarianFragment : Fragment() {
                     val fisikDisetor = snapshot.getLong("uang_tunai_fisik") ?: 0L
                     val catatanOwner = snapshot.getString("catatan_owner") ?: ""
 
+                    // Hanya isi otomatis jika EditText sedang dalam keadaan terkunci
+                    // agar tidak mengganggu jika Rider sedang mengetik ulang
                     if (!binding.etUangFisik.isEnabled) {
                         binding.etUangFisik.setText(fisikDisetor.toString())
                     }
@@ -117,10 +120,12 @@ class ClosingHarianFragment : Fragment() {
             "PENDING" -> {
                 binding.tvStatusValidasi.text = "⏳ MENUNGGU OWNER VALIDASI"
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#F57F17"))
+                kunciLayarSudahClosing()
             }
             "COCOK" -> {
                 binding.tvStatusValidasi.text = "✅ SUCCESS (COCOK)"
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#2E7D32"))
+                kunciLayarSudahClosing()
             }
             "SELISIH" -> {
                 val teksTampil = if (catatanOwner.isNotEmpty()) {
@@ -130,10 +135,14 @@ class ClosingHarianFragment : Fragment() {
                 }
                 binding.tvStatusValidasi.text = teksTampil
                 binding.tvStatusValidasi.setTextColor(Color.parseColor("#C62828"))
+
+                // Jika statusnya SELISIH, panggil fungsi untuk membuka penguncian input
+                bukaLayarUntukRevisi()
             }
             else -> {
                 binding.tvStatusValidasi.text = statusValidasi
                 binding.tvStatusValidasi.setTextColor(Color.GRAY)
+                kunciLayarSudahClosing()
             }
         }
     }
@@ -145,10 +154,7 @@ class ClosingHarianFragment : Fragment() {
                     modalAwal = doc.getLong("modal_kembalian") ?: 0L
                     namaRider = doc.getString("nama_rider") ?: "Rider"
 
-                    val statusStok = doc.getString("status_stok")
-                    if (statusStok == "CLOSED") {
-                        kunciLayarSudahClosing()
-                    }
+                    // (Logika kunci layar dihapus dari sini agar tidak bertabrakan dengan listener laporan closing)
                     perbaruiTampilanUI()
                 }
             }
@@ -227,9 +233,9 @@ class ClosingHarianFragment : Fragment() {
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Kunci Aplikasi Jualan?")
-            .setMessage("Data closing akan direkam permanen dan dikirim ke Owner. Anda tidak akan bisa lagi menerima orderan untuk hari ini.")
-            .setPositiveButton("Ya, Lapor Penjualan") { _, _ -> prosesKirimClosing() }
+            .setTitle("Kirim Laporan Closing?")
+            .setMessage("Data closing akan direkam dan dikirim ke Owner untuk divalidasi.")
+            .setPositiveButton("Ya, Kirim Laporan") { _, _ -> prosesKirimClosing() }
             .setNegativeButton("Batal", null)
             .show()
     }
@@ -239,36 +245,27 @@ class ClosingHarianFragment : Fragment() {
         val uangFisik = binding.etUangFisik.text.toString().toLong()
         val selisih = uangFisik - (modalAwal + totalTunaiSistem)
 
-        val dataClosing = hashMapOf(
-            "id_closing" to docIdClosing,
-            "tanggal" to tanggalTarget,
-            "id_rider" to uidRider,
-            "nama_rider" to namaRider,
+        val dataUpdate = hashMapOf(
             "waktu_closing_rider" to FieldValue.serverTimestamp(),
             "status_validasi" to "PENDING",
-            "total_tunai_sistem" to totalTunaiSistem,
-            "total_qris_sistem" to totalQrisSistem,
-            "total_omset_sistem" to (totalTunaiSistem + totalQrisSistem),
             "uang_tunai_fisik" to uangFisik,
             "nominal_selisih" to selisih,
             "catatan_owner" to ""
         )
 
         mFirestore.runTransaction { transaction ->
-            val refStok = mFirestore.collection("stok_harian").document(docIdStokTarget)
-            val snapStok = transaction.get(refStok)
-
             val refClosing = mFirestore.collection("closing_laporan").document(docIdClosing)
-            transaction.set(refClosing, dataClosing)
 
-            if (snapStok.exists()) {
-                transaction.update(refStok, mapOf(
-                    "status_stok" to "CLOSED"
-                ))
-            }
+            // Gunakan update untuk revisi
+            transaction.update(refClosing, dataUpdate)
+
+            // Update status stok (jika perlu)
+            val refStok = mFirestore.collection("stok_harian").document(docIdStokTarget)
+            transaction.update(refStok, "status_stok", "CLOSED")
+
             null
         }.addOnSuccessListener {
-            Toast.makeText(context, "Berhasil Lapor Penjualan!", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Laporan berhasil dikirim ulang!", Toast.LENGTH_SHORT).show()
             kunciLayarSudahClosing()
         }.addOnFailureListener { e ->
             binding.btnKirimClosing.isEnabled = true
@@ -280,6 +277,26 @@ class ClosingHarianFragment : Fragment() {
         binding.etUangFisik.isEnabled = false
         binding.btnKirimClosing.isEnabled = false
         binding.btnKirimClosing.text = "Laporan Sudah Terkunci"
+        binding.btnKirimClosing.setBackgroundColor(Color.GRAY)
+    }
+
+    // Fungsi baru untuk membuka kunci layar agar Rider bisa melakukan revisi
+    private fun bukaLayarUntukRevisi() {
+        binding.etUangFisik.isEnabled = true
+        binding.btnKirimClosing.isEnabled = true
+        binding.btnKirimClosing.text = "KIRIM ULANG LAPORAN"
+        binding.btnKirimClosing.setBackgroundColor(Color.parseColor("#00236F"))
+    }
+
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
     }
 
     override fun onDestroyView() {

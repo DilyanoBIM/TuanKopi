@@ -23,7 +23,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import java.text.NumberFormat
 import java.util.Locale
 
-data class ItemMuatanRider(
+data class ItemMuatanRiderr(
     val idProduk: String,
     val namaProduk: String,
     val stokAwal: Long,
@@ -44,7 +44,7 @@ class DetailDistribusiRiderActivity : AppCompatActivity() {
     private var cleanedTgl = ""
 
     private var posisiTerbuka: Int = -1
-    private var listMuatanLokal = ArrayList<ItemMuatanRider>()
+    private var listMuatanLokal = ArrayList<ItemMuatanRiderr>()
     private lateinit var mAdapter: MuatanAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,7 +118,7 @@ class DetailDistribusiRiderActivity : AppCompatActivity() {
                             val harga = (dataMap["harga_jual"] as? Long) ?: 0L
 
                             listMuatanLokal.add(
-                                ItemMuatanRider(
+                                ItemMuatanRiderr(
                                     idProduk = idProd,
                                     namaProduk = namaProd,
                                     stokAwal = awal,
@@ -321,7 +321,7 @@ class DetailDistribusiRiderActivity : AppCompatActivity() {
         return true
     }
 
-    inner class MuatanAdapter(private val data: List<ItemMuatanRider>) : RecyclerView.Adapter<MuatanAdapter.ViewHolder>() {
+    inner class MuatanAdapter(private val data: List<ItemMuatanRiderr>) : RecyclerView.Adapter<MuatanAdapter.ViewHolder>() {
         inner class ViewHolder(val b: ItemDetailGudangBinding) : RecyclerView.ViewHolder(b.root)
         override fun onCreateViewHolder(p: ViewGroup, vt: Int): ViewHolder =
             ViewHolder(ItemDetailGudangBinding.inflate(LayoutInflater.from(p.context), p, false))

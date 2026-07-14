@@ -1,0 +1,36 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+    <path
+        android:fillColor="#212121"
+        android:pathData="M 120 120 m -115 0 a 115 115 0 1 1 230 0 a 115 115 0 1 1 -230 0" />
+    <path
+        android:strokeWidth="4"
+        android:strokeColor="#004080"
+        android:pathData="M 120 120 m -115 0 a 115 115 0 1 1 230 0 a 115 115 0 1 1 -230 0" />
+
+    <group android:translateX="90" android:translateY="70">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 0 0 C 0 0, -5 5, 0 10 C 5 5, 0 0, 0 0 Z" /> <!-- Uap 1 -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 5 2 C 5 2, 0 7, 5 12 C 10 7, 5 2, 5 2 Z" /> <!-- Uap 2 -->
+        <path
+            android:fillColor="#004080"
+            android:pathData="M 0 20 L 40 20 L 40 40 C 40 50, 30 50, 20 50 C 10 50, 0 50, 0 40 L 0 20 Z" /> <!-- Badan Cangkir -->
+        <path
+            android:fillColor="#004080"
+            android:pathData="M 40 20 C 50 20, 50 40, 40 40 Z" /> <!-- Pegangan Cangkir (Subtle T) -->
+    </group>
+
+
+    <path
+        android:fillColor="#004080"
+        android:pathData="M110,135 Q113,135 116,135 T120,135" /> <!-- Tuan Kopi placeholder path (representasi visual) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M110,165 Q113,165 116,165 T120,165" /> <!-- Slogan placeholder path (representasi visual) -->
+</vector>

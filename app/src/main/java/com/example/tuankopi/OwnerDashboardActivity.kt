@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.example.tuankopi.databinding.ActivityOwnerDashboardBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
@@ -18,6 +20,10 @@ class OwnerDashboardActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOwnerDashboardBinding
     private lateinit var mAuth: FirebaseAuth
+
+    companion object {
+        private const val JUDUL_DEFAULT = "Tuan Kopi - Owner"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +34,7 @@ class OwnerDashboardActivity : AppCompatActivity() {
         daftarkanNotifikasiTransaksiOwner()
 
         setSupportActionBar(binding.ownerToolbar)
-        supportActionBar?.title = "Tuan Kopi - Owner"
+        supportActionBar?.title = JUDUL_DEFAULT
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.ownerToolbar) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -42,30 +48,53 @@ class OwnerDashboardActivity : AppCompatActivity() {
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.navigation_home -> {
-                    gantiFragment(HomeFragment())
-                    true
-                }
-                R.id.navigation_data -> {
-                    gantiFragment(DataMasterFragment())
-                    true
-                }
-                R.id.navigation_logistik -> {
-                    gantiFragment(LogistikFragment())
-                    true
-                }
-                R.id.navigation_audit -> {
-                    gantiFragment(AuditProfitFragment())
-                    true
-                }
+                R.id.navigation_home -> { gantiFragment(HomeFragment()); true }
+                R.id.navigation_data -> { gantiFragment(DataMasterFragment()); true }
+                R.id.navigation_logistik -> { gantiFragment(LogistikFragment()); true }
+                R.id.navigation_audit -> { gantiFragment(AuditProfitFragment()); true }
                 else -> false
             }
         }
+
+        // Perbarui judul toolbar & tombol back setiap kali back stack berubah
+        supportFragmentManager.addOnBackStackChangedListener {
+            val adaHalamanSebelumnya = supportFragmentManager.backStackEntryCount > 0
+            supportActionBar?.setDisplayHomeAsUpEnabled(adaHalamanSebelumnya)
+            supportActionBar?.title = if (adaHalamanSebelumnya) {
+                supportFragmentManager
+                    .getBackStackEntryAt(supportFragmentManager.backStackEntryCount - 1)
+                    .name
+            } else {
+                JUDUL_DEFAULT
+            }
+        }
+
+        // Tombol back fisik/gesture: pop back stack dulu sebelum benar-benar keluar activity
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
+    /** Dipakai Bottom Navigation: ganti tab utama & bersihkan back stack sub-halaman sebelumnya. */
     private fun gantiFragment(fragment: Fragment) {
+        supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
+            .commit()
+    }
+
+    /** Dipakai sub-halaman (Manage/Add/Detail Rider dll) agar bisa ditumpuk & di-back. */
+    fun bukaHalaman(fragment: Fragment, judul: String) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(judul)
             .commit()
     }
 
@@ -76,12 +105,17 @@ class OwnerDashboardActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_logout -> {
-                tampilkanDialogKonfirmasiLogout()
-                true
-            }
+            R.id.action_logout -> { tampilkanDialogKonfirmasiLogout(); true }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+            return true
+        }
+        return super.onSupportNavigateUp()
     }
 
     private fun tampilkanDialogKonfirmasiLogout() {
@@ -90,9 +124,7 @@ class OwnerDashboardActivity : AppCompatActivity() {
             .setMessage("Apakah Anda yakin ingin keluar dari akun Owner?")
             .setPositiveButton("Logout") { _, _ ->
                 mAuth.signOut()
-
                 Toast.makeText(this, "Berhasil keluar dari sistem", Toast.LENGTH_SHORT).show()
-
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
@@ -102,8 +134,9 @@ class OwnerDashboardActivity : AppCompatActivity() {
             .create()
             .show()
     }
+
     private fun daftarkanNotifikasiTransaksiOwner() {
-        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("owners")
+        FirebaseMessaging.getInstance().subscribeToTopic("owners")
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     android.util.Log.d("FCM_SETUP", "Sukses mendaftarkan perangkat ke saluran data transaksi Owner.")

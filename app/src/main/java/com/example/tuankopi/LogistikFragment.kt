@@ -1,13 +1,12 @@
 package com.example.tuankopi
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentLogistikBinding
-import com.example.tuankopi.distribusi.ManageDistribusiActivity
+import com.example.tuankopi.distribusi.ManageDistribusiFragment
 
 class LogistikFragment : Fragment() {
     private var _binding: FragmentLogistikBinding? = null
@@ -17,13 +16,13 @@ class LogistikFragment : Fragment() {
         _binding = FragmentLogistikBinding.inflate(inflater, container, false)
 
         binding.cardStokGudang.setOnClickListener {
-            val intent = Intent(requireActivity(), ManageStokGudangActivity::class.java)
-            startActivity(intent)
+            (requireActivity() as OwnerDashboardActivity)
+                .bukaHalaman(ManageStokGudangFragment(), "Stok Gudang Harian")
         }
 
         binding.cardDistribusiPagi.setOnClickListener {
-            val intent = Intent(requireActivity(), ManageDistribusiActivity::class.java)
-            startActivity(intent)
+            (requireActivity() as OwnerDashboardActivity)
+                .bukaHalaman(ManageDistribusiFragment(), "Pilih Tanggal Distribusi")
         }
 
         return binding.root

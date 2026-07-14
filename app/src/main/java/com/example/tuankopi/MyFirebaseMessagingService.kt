@@ -65,7 +65,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentTitle("Transaksi QRIS Sukses! 🎉")
             .setContentText("Rider $namaRider berhasil menjual kopi senilai $totalFormatted")
             .setStyle(NotificationCompat.BigTextStyle().bigText(
-                "Detail Invoice:\nNo. Order: $orderId\nNama Rider: $namaRider\nTotal Penerimaan: $totalFormatted\n\nData sistem real-time terlah terbarui otomatis."
+                "Detail Invoice:\nNo. Order: $orderId\nNama Rider: $namaRider\nTotal Penerimaan: $totalFormatted\n\nData sistem real-time telah terbarui otomatis."
             ))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)

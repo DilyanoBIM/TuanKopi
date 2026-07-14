@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="20dp"
-    android:background="#F5F5F5">
+    android:padding="16dp"
+    android:background="#F8F9FB">
 
     <TextView
         android:layout_width="wrap_content"
@@ -13,7 +13,7 @@
         android:text="Aktivitas &amp; Laporan"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="#3E2723"
+        android:textColor="#191C1E"
         android:layout_marginBottom="20dp"/>
 
     <androidx.cardview.widget.CardView
@@ -41,14 +41,14 @@
                 android:text="Riwayat Transaksi"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#3E2723"/>
+                android:textColor="#191C1E"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Lihat seluruh daftar penjualan berdasarkan tanggal"
                 android:textSize="12sp"
-                android:textColor="#757575"
+                android:textColor="#757682"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -78,14 +78,14 @@
                 android:text="Closing Harian"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#3E2723"/>
+                android:textColor="#191C1E"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Setor omset dan cek laporan validasi Owner"
                 android:textSize="12sp"
-                android:textColor="#757575"
+                android:textColor="#757682"
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

@@ -1,11 +1,9 @@
 package com.example.tuankopi
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.tuankopi.databinding.FragmentDataMasterBinding
 
@@ -17,12 +15,14 @@ class DataMasterFragment : Fragment() {
         _binding = FragmentDataMasterBinding.inflate(inflater, container, false)
 
         binding.cardManageRider.setOnClickListener {
-            startActivity(Intent(requireActivity(), ManageRiderActivity::class.java))
+            (requireActivity() as OwnerDashboardActivity)
+                .bukaHalaman(ManageRiderFragment(), "Kelola Operasional Rider")
         }
 
         binding.cardManageProduct.setOnClickListener {
-            val intent = Intent(requireActivity(), ManageProductActivity::class.java)
-            startActivity(intent)
+            // UBAH BAGIAN INI MENJADI FRAGMENT
+            (requireActivity() as OwnerDashboardActivity)
+                .bukaHalaman(ManageProductFragment(), "Katalog Produk Master")
         }
 
         return binding.root

@@ -87,12 +87,22 @@ class RiderDashboardFragment : Fragment() {
 
                 if (snapshot == null || !snapshot.exists()) {
                     updateUIVisibilityJualan("BELUM JUALAN")
-                    resetUIStokKopi()
+                    resetUIStokKopiDanFinansialMurniNol()
                     return@addSnapshotListener
                 }
 
                 val statusJualanLapangan = snapshot.getString("status_jualan") ?: "BELUM JUALAN"
                 updateUIVisibilityJualan(statusJualanLapangan)
+
+                // Jika SELESAI JUALAN, STOP Baca Data dan Tampilkan 0 murni di Dashboard.
+                if (statusJualanLapangan == "SELESAI JUALAN") {
+                    resetUIStokKopiDanFinansialMurniNol()
+                    return@addSnapshotListener
+                }
+
+                // Cek ada distribusi pending atau tidak
+                val adaPendingKonfirmasi = snapshot.contains("pending_suplai")
+                binding.cardWarningStokPending.visibility = if (adaPendingKonfirmasi) View.VISIBLE else View.GONE
 
                 modalKasAwalLokal = snapshot.getLong("modal_kembalian") ?: 0L
                 val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
@@ -106,8 +116,6 @@ class RiderDashboardFragment : Fragment() {
                     for ((key, value) in detailStokMap) {
                         val idProd = key.toString()
                         val dataMap = value as? Map<*, *> ?: continue
-                        val isDiterima = dataMap["diterima"] as? Boolean ?: false
-                        if (!isDiterima) continue
 
                         val namaProd = dataMap["nama_produk"] as? String ?: "Menu"
                         val totalBawaanProd = dataMap["total_stok"] as? Long ?: (dataMap["stok_awal"] as? Long ?: 0L)
@@ -162,10 +170,12 @@ class RiderDashboardFragment : Fragment() {
                 totalTunaiOmsetHariIni = totalTunai
                 totalQrisOmsetHariIni = totalQris
 
-                updateTampilanUangLaciFisikLive()
-                tampilkanPieChartPendapatan(totalTunai, totalQris)
-
-                kalkulasiSaringanProdukDashboardLive(petaKuantitasTerjualRealtime)
+                // Lakukan proteksi tambahan: Jika sudah selesai jualan, listener transaksinya juga diabaikan.
+                if (binding.tvStatusHariIni.text.toString() != "SELESAI JUALAN") {
+                    updateTampilanUangLaciFisikLive()
+                    tampilkanPieChartPendapatan(totalTunai, totalQris)
+                    kalkulasiSaringanProdukDashboardLive(petaKuantitasTerjualRealtime)
+                }
             }
         listeners.add(lrTransactions)
     }
@@ -321,29 +331,38 @@ class RiderDashboardFragment : Fragment() {
                     val statusStokLogistik = snapshot.getString("status_stok") ?: "CLOSED"
 
                     if (statusBaruJualan == "SEDANG JUALAN" && statusStokLogistik != "AKTIF") {
-                        Toast.makeText(context, "Gagal! Konfirmasi jatah cup di menu 'Konfirmasi Stok' dulu!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Gagal! Konfirmasi jatah di menu 'Konfirmasi Stok' dulu!", Toast.LENGTH_LONG).show()
                         return@addOnSuccessListener
                     }
 
                     mFirestore.collection("stok_harian").document(docId)
                         .update("status_jualan", statusBaruJualan)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "Sukses merubah status jualan!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Status Jualan Diperbarui!", Toast.LENGTH_SHORT).show()
                         }
                 }
             }
     }
 
-    private fun resetUIStokKopi() {
+    // FUNGSI RESET LAYAR MURNI KE 0 KETIKA "SELESAI JUALAN" DITEKAN
+    private fun resetUIStokKopiDanFinansialMurniNol() {
+        binding.cardWarningStokPending.visibility = View.GONE
+
         binding.tvTotalStokBawaan.text = "0"
         binding.tvTotalStokTerjual.text = "0"
         binding.tvTotalStokSisa.text = "0"
+
         binding.tvModalKembalianDashboard.text = "Rp 0"
         binding.tvPembayaranTunaiLive.text = "Rp 0"
         binding.tvPembayaranQrisLive.text = "Rp 0"
         binding.tvTotalPendapatanHariIni.text = "Rp 0"
         binding.tvTotalFisikLaciMotor.text = "Rp 0"
+
         binding.containerRankingProdukRider.removeAllViews()
+
+        // Membersihkan Pie Chart
+        binding.pieChartRiderPendapatan.clear()
+        binding.pieChartRiderPendapatan.invalidate()
     }
 
     private fun tampilkanPieChartPendapatan(tunai: Float, qris: Float) {

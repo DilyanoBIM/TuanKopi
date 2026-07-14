@@ -16,6 +16,7 @@ import com.example.tuankopi.databinding.FragmentRiderStokDetailBinding
 import com.example.tuankopi.databinding.ItemKatalogStokDetailBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 class RiderStokDetailFragment : Fragment() {
@@ -36,7 +37,7 @@ class RiderStokDetailFragment : Fragment() {
             val fragment = RiderStokDetailFragment()
             val args = Bundle().apply {
                 putString("ARG_DOC_ID", docId)
-                putString("ARG_TANGGAL", tanggal)
+                putString("ARG_TANGGAL", tanggal) // Menerima YYYY-MM-DD
                 putLong("ARG_MODAL", modal)
             }
             fragment.arguments = args
@@ -72,7 +73,10 @@ class RiderStokDetailFragment : Fragment() {
     }
 
     private fun setupHeaderInformasi() {
-        binding.tvDetailHeaderTanggal.text = "Muatan: $stringTanggal"
+        // Format tanggal sebelum ditampilkan di Header
+        val tanggalIndo = formatKeTanggalIndo(stringTanggal)
+        binding.tvDetailHeaderTanggal.text = "Muatan: $tanggalIndo"
+
         val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
         binding.tvDetailHeaderModal.text = "Modal Pecahan Kembalian: " + formatter.format(nominalModal).replace(",00", "")
     }
@@ -112,6 +116,18 @@ class RiderStokDetailFragment : Fragment() {
                 listDetailKopi.addAll(listRender.sortedBy { it.namaProduk })
                 mAdapter.notifyDataSetChanged()
             }
+    }
+
+    // Fungsi format tanggal ditambahkan ke sini
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
     }
 
     override fun onDestroyView() {

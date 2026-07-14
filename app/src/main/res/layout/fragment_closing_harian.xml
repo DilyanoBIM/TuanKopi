@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:background="#F8F9FB">
 
+    <!-- HEADER DISERAGAMKAN -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,14 +25,28 @@
             android:layout_marginEnd="8dp"
             app:tint="#191C1E"/>
 
-        <TextView
-            android:id="@+id/tvInfoTanggalClosing"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Closing Laporan"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#191C1E"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvInfoTanggalClosing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Closing Laporan"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#191C1E"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rekapitulasi dan setor omset harian"
+                android:textSize="12sp"
+                android:textColor="#757682"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView
@@ -45,48 +60,64 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Data Sistem POS Tuan Kopi"
-                android:textStyle="bold"
-                android:textColor="#757575"
-                android:textSize="14sp"
-                android:layout_marginBottom="12dp" />
+                app:cardElevation="2dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#FFFFFF"
+                android:layout_marginBottom="16dp">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset QRIS (Otomatis):" />
-                <TextView android:id="@+id/tvQrisSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
-            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset Tunai (Manual):" />
-                <TextView android:id="@+id/tvTunaiSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Data Sistem POS Tuan Kopi"
+                        android:textStyle="bold"
+                        android:textColor="#757682"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Total Penjualan Kotor:" android:textColor="#191C1E" android:textStyle="bold"/>
-                <TextView android:id="@+id/tvTotalPenjualanSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#191C1E" android:text="Rp 0"/>
-            </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset QRIS (Otomatis):" android:textColor="#444651"/>
+                        <TextView android:id="@+id/tvQrisSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#191C1E" android:text="Rp 0"/>
+                    </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginVertical="16dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Omset Tunai (Manual):" android:textColor="#444651"/>
+                        <TextView android:id="@+id/tvTunaiSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#191C1E" android:text="Rp 0"/>
+                    </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Modal Kembalian Awal:" />
-                <TextView android:id="@+id/tvModalSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:text="Rp 0"/>
-            </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Total Penjualan:" android:textColor="#191C1E" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tvTotalPenjualanSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#191C1E" android:text="Rp 0"/>
+                    </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvTargetFisik"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Target Uang di Laci: Rp 0"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#C62828"
-                android:gravity="center"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginVertical="16dp"/>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Modal Kembalian Awal:" android:textColor="#444651"/>
+                        <TextView android:id="@+id/tvModalSistem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="#191C1E" android:text="Rp 0"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvTargetFisik"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Target Uang di Laci: Rp 0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#C62828"
+                        android:gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="8dp"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <LinearLayout
                 android:id="@+id/layoutInputFisik"
@@ -98,7 +129,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textStyle="bold"
-                    android:textColor="#3E2723"
+                    android:textColor="#191C1E"
                     android:text="Input Laporan Fisik"/>
 
                 <EditText
@@ -116,7 +147,7 @@
                     android:layout_height="wrap_content"
                     android:text="Selisih Perhitungan: Rp 0"
                     android:textStyle="italic"
-                    android:textColor="#757575"
+                    android:textColor="#757682"
                     android:layout_marginBottom="24dp"/>
 
                 <Button
@@ -124,7 +155,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="55dp"
                     android:text="LAPOR PENJUALAN"
-                    android:backgroundTint="#3E2723"
+                    android:backgroundTint="#00236F"
                     android:textStyle="bold" />
 
                 <androidx.cardview.widget.CardView
@@ -159,7 +190,7 @@
                             android:layout_height="wrap_content"
                             android:text="Total Setoran Diserahkan: Rp 0"
                             android:textSize="14sp"
-                            android:textColor="#757575"
+                            android:textColor="#757682"
                             android:gravity="center"
                             android:layout_marginBottom="12dp"/>
 

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="24dp"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="12dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingTop="32dp"
+        android:paddingBottom="24dp"
+        android:paddingHorizontal="24dp">
+
+        <!-- Ikon Sukses Animasi/Emoji -->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="🎉"
+            android:textSize="48sp"
+            android:gravity="center"
+            android:background="@drawable/bg_circle_success"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pembayaran Berhasil!"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaksi telah tersimpan ke sistem"
+            android:textSize="14sp"
+            android:textColor="#757575"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"/>
+
+        <!-- Detail Struk -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#F5F5F5"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvDialogOrderId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Order ID: -"
+                android:textSize="12sp"
+                android:textColor="#9E9E9E"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvDialogMetode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Metode: -"
+                android:textSize="14sp"
+                android:textColor="#424242"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvDialogTotalBelanja"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Belanja: Rp 0"
+                android:textSize="16sp"
+                android:textColor="#00236F"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvDialogKembalian"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Kembalian: Rp 0"
+                android:textSize="14sp"
+                android:textColor="#D84315"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnDialogSelesai"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="TRANSAKSI BARU"
+            android:backgroundTint="#00236F"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"/>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

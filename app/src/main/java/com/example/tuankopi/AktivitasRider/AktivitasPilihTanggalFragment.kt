@@ -15,6 +15,8 @@ import com.example.tuankopi.databinding.FragmentAktivitasPilihTanggalBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class AktivitasPilihTanggalFragment : Fragment() {
 
@@ -47,11 +49,9 @@ class AktivitasPilihTanggalFragment : Fragment() {
 
         modeTujuan = arguments?.getString("MODE") ?: "RIWAYAT"
 
-        val activity = activity as? RiderDashboardActivity
-        activity?.setSupportActionBar(binding.customToolbar)
-        activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.customToolbar.setNavigationOnClickListener {
-            activity?.gantiRiderFragment(RiderAktivitasFragment())
+        // Tombol Back diselaraskan dengan gaya layout baru
+        binding.btnBack.setOnClickListener {
+            (activity as? RiderDashboardActivity)?.gantiRiderFragment(RiderAktivitasFragment())
         }
 
         binding.tvDetailHeader.text = if (modeTujuan == "RIWAYAT") "Pilih Tanggal Transaksi" else "Pilih Tanggal Closing"
@@ -64,6 +64,7 @@ class AktivitasPilihTanggalFragment : Fragment() {
 
     private fun setupRecyclerView() {
         mAdapter = TanggalAdapter(listTanggal) { tglTerpilih ->
+            // Tetap mengirimkan format YYYY-MM-DD ke Fragment selanjutnya
             if (modeTujuan == "RIWAYAT") {
                 val fragment = RiwayatTransaksiFragment.newInstance(tglTerpilih)
                 (activity as? RiderDashboardActivity)?.gantiRiderFragment(fragment)
@@ -108,6 +109,18 @@ class AktivitasPilihTanggalFragment : Fragment() {
             }
     }
 
+    // Fungsi format tanggal ditambahkan ke sini
+    private fun formatKeTanggalIndo(tanggal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = parser.parse(tanggal)
+            val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
+            if (date != null) formatter.format(date) else tanggal
+        } catch (e: Exception) {
+            tanggal
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -122,8 +135,12 @@ class AktivitasPilihTanggalFragment : Fragment() {
             return ViewHolder(v)
         }
         override fun onBindViewHolder(vh: ViewHolder, pos: Int) {
-            vh.textTgl.text = data[pos]
-            vh.view.setOnClickListener { click(data[pos]) }
+            val tanggalAsli = data[pos]
+
+            // Format yang ditampilkan di list menggunakan bahasa indonesia
+            vh.textTgl.text = formatKeTanggalIndo(tanggalAsli)
+
+            vh.view.setOnClickListener { click(tanggalAsli) }
         }
         override fun getItemCount(): Int = data.size
     }
