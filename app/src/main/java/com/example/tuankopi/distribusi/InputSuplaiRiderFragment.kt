@@ -165,6 +165,11 @@ class InputSuplaiRiderFragment : Fragment() {
 
             if (!snapshotGudang.exists()) throw FirebaseFirestoreException("Dokumen stok gudang pusat tidak ditemukan!", FirebaseFirestoreException.Code.NOT_FOUND)
 
+            // TAMBAHAN: Keamanan Backend - Tolak jika Rider sudah selesai jualan
+            if (snapshotRider.exists() && snapshotRider.getString("status_jualan") == "SELESAI JUALAN") {
+                throw FirebaseFirestoreException("TIDAK DAPAT DISTRIBUSI KE RIDER ${riderNama.uppercase()} KARENA RIDER TELAH SELESAI JUALAN", FirebaseFirestoreException.Code.ABORTED)
+            }
+
             // CEK APAKAH RIDER MASIH PUNYA PENDINGAN
             if (snapshotRider.exists() && snapshotRider.contains("pending_suplai")) {
                 throw FirebaseFirestoreException("Distribusi ditolak! Rider belum mengonfirmasi/menerima distribusi Anda yang sebelumnya.", FirebaseFirestoreException.Code.ABORTED)
@@ -235,7 +240,13 @@ class InputSuplaiRiderFragment : Fragment() {
             Toast.makeText(requireContext(), "Suplai (Sesi Terbaru) telah dikirim ke Rider!", Toast.LENGTH_SHORT).show()
             requireActivity().supportFragmentManager.popBackStack()
         }.addOnFailureListener { e ->
-            Toast.makeText(requireContext(), "Gagal: ${e.message}", Toast.LENGTH_LONG).show()
+            // PERUBAHAN: Menampilkan format toast murni khusus untuk validasi SELESAI JUALAN
+            val errorMsg = e.message ?: "Terjadi kesalahan"
+            if (errorMsg.contains("TIDAK DAPAT DISTRIBUSI")) {
+                Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(requireContext(), "Gagal: $errorMsg", Toast.LENGTH_LONG).show()
+            }
         }
     }
 

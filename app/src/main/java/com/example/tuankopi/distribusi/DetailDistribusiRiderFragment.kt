@@ -33,7 +33,6 @@ data class ItemMuatanRider(
     val hargaJual: Long = 0L
 )
 
-// PENYESUAIAN BARU: representasi 1 item di dalam 1 sesi distribusi (histori, bukan kumulatif)
 data class ItemSuplaiSesi(
     val idProduk: String,
     val namaProduk: String,
@@ -41,11 +40,10 @@ data class ItemSuplaiSesi(
     val hargaJual: Long
 )
 
-// PENYESUAIAN BARU: representasi 1 sesi distribusi lengkap dengan status diterima/pending
 data class SesiDistribusi(
     val sesiKe: Long,
     val modal: Long,
-    val status: String, // "PENDING" atau "DITERIMA"
+    val status: String,
     val items: List<ItemSuplaiSesi>
 )
 
@@ -58,12 +56,12 @@ class DetailDistribusiRiderFragment : Fragment() {
     private var riderUid = ""
     private var riderNama = ""
     private var cleanedTgl = ""
+    private var statusJualanRider = "" // Menyimpan status jualan live
 
     private var posisiTerbuka: Int = -1
     private var listMuatanLokal = ArrayList<ItemMuatanRider>()
     private lateinit var mAdapter: MuatanAdapter
 
-    // PENYESUAIAN BARU: list & adapter untuk riwayat sesi distribusi
     private var listSesiLokal = ArrayList<SesiDistribusi>()
     private lateinit var mAdapterSesi: SesiAdapter
 
@@ -81,6 +79,19 @@ class DetailDistribusiRiderFragment : Fragment() {
         setupRecyclerView()
 
         binding.fabTambahJatahSuplai.setOnClickListener {
+            // PERUBAHAN: Memunculkan peringatan menggunakan Modal (AlertDialog) di tengah layar
+            if (statusJualanRider == "SELESAI JUALAN") {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Peringatan")
+                    .setMessage("TIDAK DAPAT DISTRIBUSI KE RIDER ${riderNama.uppercase()} KARENA RIDER TELAH SELESAI JUALAN")
+                    .setPositiveButton("Mengerti") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setCancelable(false)
+                    .show()
+                return@setOnClickListener
+            }
+
             val fragment = InputSuplaiRiderFragment().apply {
                 arguments = Bundle().apply {
                     putString("TARGET_TANGGAL", targetTanggal)
@@ -104,7 +115,6 @@ class DetailDistribusiRiderFragment : Fragment() {
         binding.rvDetailDistribusiRider.layoutManager = LinearLayoutManager(requireContext())
         binding.rvDetailDistribusiRider.adapter = mAdapter
 
-        // PENYESUAIAN BARU: recyclerview riwayat sesi (butuh id rvSesiDistribusi di layout)
         mAdapterSesi = SesiAdapter(listSesiLokal)
         binding.rvSesiDistribusi.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSesiDistribusi.adapter = mAdapterSesi
@@ -116,13 +126,15 @@ class DetailDistribusiRiderFragment : Fragment() {
             .addSnapshotListener { snapshot, _ ->
                 if (_binding != null && snapshot != null && snapshot.exists()) {
 
+                    // Update status jualan rider secara live
+                    statusJualanRider = snapshot.getString("status_jualan") ?: "BELUM JUALAN"
+
                     val cashAwal = snapshot.getLong("modal_kembalian") ?: 0L
                     val formatterRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
                     val textModalFormat = formatterRupiah.format(cashAwal).replace(",00", "")
 
                     val sesiTerakhir = snapshot.getLong("sesi_terakhir") ?: 0L
 
-                    // PENYESUAIAN BARU: parsing riwayat_suplai (map histori per sesi, TIDAK dihapus saat diterima)
                     listSesiLokal.clear()
                     val riwayatMap = snapshot.get("riwayat_suplai") as? Map<*, *>
                     if (riwayatMap != null) {
@@ -153,7 +165,8 @@ class DetailDistribusiRiderFragment : Fragment() {
                     val adaPending = listSesiLokal.any { it.status == "PENDING" }
                     mAdapterSesi.notifyDataSetChanged()
 
-                    var teksHeader = "Muatan $riderNama (Sesi Aktif: $sesiTerakhir) — Modal: $textModalFormat"
+                    // PERUBAHAN: Menyisipkan statusJualanRider ke dalam informasi header atas
+                    var teksHeader = "Muatan $riderNama (Sesi Aktif: $sesiTerakhir) \nStatus Rider: $statusJualanRider \nModal: $textModalFormat"
                     if (adaPending) {
                         teksHeader += "\n⚠️ Ada jatah baru yang belum diterima Rider"
                     }
@@ -419,7 +432,6 @@ class DetailDistribusiRiderFragment : Fragment() {
         override fun getItemCount(): Int = data.size
     }
 
-    // PENYESUAIAN BARU: adapter untuk kartu riwayat tiap sesi distribusi (histori, read-only bagi Owner)
     inner class SesiAdapter(private val data: List<SesiDistribusi>) :
         RecyclerView.Adapter<SesiAdapter.ViewHolder>() {
 

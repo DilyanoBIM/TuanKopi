@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.example.tuankopi.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -22,12 +23,17 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Memaksa aplikasi menggunakan Light Mode
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         mAuth = FirebaseAuth.getInstance()
         mFirestore = FirebaseFirestore.getInstance()
 
+        // Auto-login jika sesi masih ada
         if (mAuth.currentUser != null) {
             binding.progressBar.visibility = View.VISIBLE
             binding.btnSignIn.visibility = View.GONE
@@ -35,11 +41,11 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.btnSignIn.setOnClickListener {
-            val email = binding.etEmail.text.toString().trim()
+            val inputLogin = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
-            if (email.isEmpty()) {
-                binding.etEmail.error = "Email tidak boleh kosong"
+            if (inputLogin.isEmpty()) {
+                binding.etEmail.error = "Email atau No. HP tidak boleh kosong"
                 return@setOnClickListener
             }
             if (password.isEmpty()) {
@@ -48,18 +54,47 @@ class LoginActivity : AppCompatActivity() {
             }
 
             lifecycleScope.launch {
-                jalankanProsesLogin(email, password)
+                jalankanProsesLogin(inputLogin, password)
             }
         }
     }
 
-    private suspend fun jalankanProsesLogin(email: String, password: String) {
+    private suspend fun jalankanProsesLogin(inputLogin: String, password: String) {
         binding.progressBar.visibility = View.VISIBLE
         binding.btnSignIn.visibility = View.GONE
 
         try {
+            var emailUntukLogin = inputLogin
+
+            // DETEKSI INPUT: Jika input TIDAK mengandung '@', asumsikan itu Nomor HP
+            if (!inputLogin.contains("@")) {
+                val usersRef = mFirestore.collection("users")
+                // Cari dokumen user berdasarkan no_hp
+                val querySnapshot = withContext(Dispatchers.IO) {
+                    usersRef.whereEqualTo("no_hp", inputLogin).get().await()
+                }
+
+                if (querySnapshot.isEmpty) {
+                    resetKomponenUI("Nomor HP tidak terdaftar di sistem.")
+                    return
+                }
+
+                // Ambil email dari data profil Firestore yang ditemukan
+                val userDoc = querySnapshot.documents[0]
+                val emailDariDatabase = userDoc.getString("email")
+
+                if (emailDariDatabase.isNullOrEmpty()) {
+                    resetKomponenUI("Akun ditemukan, tapi data email tidak valid.")
+                    return
+                }
+
+                // Gunakan email yang ditemukan untuk proses autentikasi Firebase
+                emailUntukLogin = emailDariDatabase
+            }
+
+            // PROSES AUTENTIKASI FIREBASE
             val uid = withContext(Dispatchers.IO) {
-                val authResult = mAuth.signInWithEmailAndPassword(email, password).await()
+                val authResult = mAuth.signInWithEmailAndPassword(emailUntukLogin, password).await()
                 authResult.user?.uid
             }
 
@@ -71,7 +106,8 @@ class LoginActivity : AppCompatActivity() {
             arahkanKeDashboardSesuaiRole(uid)
 
         } catch (e: Exception) {
-            resetKomponenUI("Gagal login: ${e.localizedMessage}")
+            // Error handling disederhanakan agar tidak memunculkan pesan error bahasa Inggris bawaan Firebase ke user
+            resetKomponenUI("Gagal login: Kredensial salah atau bermasalah.")
         }
     }
 

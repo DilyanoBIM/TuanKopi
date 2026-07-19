@@ -49,21 +49,32 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:startIconDrawable="@android:drawable/sym_action_email"
+                app:startIconTint="#795548"
+                app:hintTextColor="#3E2723"
+                android:textColorHint="#9E9E9E"
+                app:boxStrokeColor="#3E2723"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
+                <!-- InputType diubah menjadi text agar memudahkan ketik No HP atau Email -->
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Email / No. HP"
-                    android:inputType="textEmailAddress"/>
+                    android:textColor="#000000"
+                    android:inputType="text"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:startIconDrawable="@android:drawable/ic_lock_lock"
+                app:startIconTint="#795548"
                 app:passwordToggleEnabled="true"
+                app:passwordToggleTint="#795548"
+                app:hintTextColor="#3E2723"
+                android:textColorHint="#9E9E9E"
+                app:boxStrokeColor="#3E2723"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -71,6 +82,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Password"
+                    android:textColor="#000000"
                     android:inputType="textPassword"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
@@ -83,6 +95,7 @@
         android:layout_height="55dp"
         android:text="SIGN IN"
         android:backgroundTint="#3E2723"
+        android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
